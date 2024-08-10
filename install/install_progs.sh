@@ -2,82 +2,99 @@
 
 cd "$(dirname "$0")" || exit
 
-echo "Перед началом установки обязательно требуется установить репозитории из install_repos.sh. Они установленны? (Д/н)"
+echo "Перед началом установки обязательно требуется установить репозитории из install_repos.sh. Они установлены? (Д/н)"
 read -r -n 1 ans
 
 case $ans in
     [YyДд]* )
-        echo "Установка запускается"
+        echo "\nУстановка запускается"
         ;;
     * )
         exit
         ;;
 esac
 
-echo "Установка gdu и neovim 5MB -> 17MB"
-sudo apt install gdu neovim
+while true; do
+    echo "Выберите программу для установки (введите номер или оставьте пустым для выхода):"
+    echo "1. gdu и neovim 5MB -> 17MB"
+    echo "2. Discord 103MB -> 260MB"
+    echo "3. VsCode 103MB -> 406MB"
+    echo "4. Terminator 380KB -> 2320KB"
+    echo "5. Google Chrome 109MB -> 353MB"
+    echo "6. Nerd Fonts для терминала 2,2GB -> (8GB) -> 2,2GB"
+    read -r choice
 
-echo "Хотите ли вы установить Discord? 103MB -> 260MB (Д/н)"
-read -r -n 1 ans
+    if [ -z "$choice" ]; then
+        echo "Выход из программы."
+        exit
+    fi
 
-case $ans in
-    [YyДд]* )
-        echo "Установка Discord начинается."
-        ./progs/discord.sh
-        ;;
-    * )
-        echo "Установка Discord отменена, вы всё ещё можете установить Discord выполнив $(dirname "$0")/progs/discord.sh"
-        ;;
-esac
+    case $choice in
+        1)
+            echo "Установка gdu и neovim 5MB -> 17MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                sudo apt install gdu neovim
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        2)
+            echo "Установка Discord 103MB -> 260MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                ./progs/discord.sh
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        3)
+            echo "Установка VsCode 103MB -> 406MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                sudo apt install code
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        4)
+            echo "Установка Terminator 380KB -> 2320KB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                sudo apt install terminator
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        5)
+            echo "Установка Google Chrome 109MB -> 353MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                sudo apt install google-chrome-stable
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        6)
+            echo "Установка Nerd Fonts для терминала 2,2GB -> (8GB) -> 2,2GB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                ./progs/nerd_fonts.sh
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        *)
+            echo "Неправильный выбор, пожалуйста, попробуйте снова."
+            ;;
+    esac
 
-echo "Хотите ли вы установить VsCode? 103MB -> 406MB (Д/н)"
-read -r -n 1 ans
+    echo
+done
 
-case $ans in
-    [YyДд]* )
-        echo "Установка VsCode начинается."
-        sudo apt install code
-        ;;
-    * )
-        echo "Установка VsCode отменена, вы всё ещё можете установить VsCode выполнив \"sudo apt install code\""
-        ;;
-esac
-
-echo "Хотите ли вы установить терминал Terminator? 380KB -> 2320KB (Д/н)"
-read -r -n 1 ans
-
-case $ans in
-    [YyДд]* )
-        echo "Установка Terminator начинается."
-        sudo apt install terminator
-        ;;
-    * )
-        echo "Установка Terminator отменена, вы всё ещё можете установить Terminator выполнив \"sudo apt install terminator\""
-        ;;
-esac
-
-echo "Хотите ли вы установить Google Chrome? 109MB -> 353MB (Д/н)"
-read -r -n 1 ans
-
-case $ans in
-    [YyДд]* )
-        echo "Установка Google Chrome начинается."
-        sudo apt install google-chrome-stable
-        ;;
-    * )
-        echo "Установка Google Chrome отменена, вы всё ещё можете установить Google Chrome выполнив \"sudo apt install google-chrome-stable\""
-        ;;
-esac
-
-echo "Хотите ли вы установить Nerd Fonts для терминала? 2,2GB -> (8GB) -> 2,2GB (Д/н)"
-read -r -n 1 ans
-
-case $ans in
-    [YyДд]* )
-        echo "Установка Nerd Fonts начинается."
-        ./progs/nerd_fonts.sh
-        ;;
-    * )
-        echo "Установка Nerd Fonts отменена, вы всё ещё можете установить Nerd Fonts выполнив \"$(dirname "$0")/progs/nerd_fonts.sh\""
-        ;;
-esac

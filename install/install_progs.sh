@@ -14,10 +14,10 @@ case $ans in
         ;;
 esac
 
-echo "Установка gdu и neovim"
+echo "Установка gdu и neovim 5MB -> 17MB"
 sudo apt install gdu neovim
 
-echo "Хотите ли вы установить Discord? (Д/н)"
+echo "Хотите ли вы установить Discord? 103MB -> 260MB (Д/н)"
 read -r -n 1 ans
 
 case $ans in
@@ -30,7 +30,7 @@ case $ans in
         ;;
 esac
 
-echo "Хотите ли вы установить VsCode? (Д/н)"
+echo "Хотите ли вы установить VsCode? 103MB -> 406MB (Д/н)"
 read -r -n 1 ans
 
 case $ans in
@@ -43,4 +43,15 @@ case $ans in
         ;;
 esac
 
+echo "Хотите ли вы установить терминал Terminator? 380KB -> 2320KB (Д/н)"
+read -r -n 1 ans
 
+case $ans in
+    [YyДд]* )
+        echo "Установка Terminator начинается."
+        sudo apt install terminator
+        ;;
+    * )
+        echo "Установка Terminator отменена, вы всё ещё можете установить VsCode выполнив \"sudo apt install terminator\""
+        ;;
+esac

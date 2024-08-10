@@ -2,6 +2,18 @@
 
 cd "$(dirname "$0")" || exit
 
+echo "Перед началом установки обязательно требуется установить репозитории из install_repos.sh. Они установленны? (Д/н)"
+read -r ans
+
+case $ans in
+    [YyДд]* )
+        echo "Установка запускается"
+        ;;
+    * )
+        exit
+        ;;
+esac
+
 echo "Хотите ли вы установить Discord? (Д/н)"
 read -r ans
 
@@ -15,7 +27,7 @@ case $ans in
         ;;
 esac
 
-echo "Хотите ли вы установить VsCode (Требуются установленные репозитории из install_repos.sh)? (Д/н)"
+echo "Хотите ли вы установить VsCode? (Д/н)"
 read -r ans
 
 case $ans in

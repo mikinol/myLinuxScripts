@@ -68,3 +68,16 @@ case $ans in
         echo "Установка Google Chrome отменена, вы всё ещё можете установить Google Chrome выполнив \"sudo apt install google-chrome-stable\""
         ;;
 esac
+
+echo "Хотите ли вы установить Nerd Fonts для терминала? 2,2GB -> (8GB) -> 2,2GB (Д/н)"
+read -r -n 1 ans
+
+case $ans in
+    [YyДд]* )
+        echo "Установка Nerd Fonts начинается."
+        ./progs/nerd_fonts.sh
+        ;;
+    * )
+        echo "Установка Nerd Fonts отменена, вы всё ещё можете установить Nerd Fonts выполнив \"$(dirname "$0")/progs/nerd_fonts.sh\""
+        ;;
+esac

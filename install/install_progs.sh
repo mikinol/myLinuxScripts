@@ -14,6 +14,9 @@ case $ans in
         ;;
 esac
 
+echo "Установка gdu и neovim"
+sudo apt install gdu neovim
+
 echo "Хотите ли вы установить Discord? (Д/н)"
 read -r -n 1 ans
 

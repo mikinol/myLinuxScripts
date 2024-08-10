@@ -22,6 +22,7 @@ while true; do
     echo "4. Terminator 380KB -> 2320KB"
     echo "5. Google Chrome 109MB -> 353MB"
     echo "6. Nerd Fonts для терминала 2,2GB -> (8GB) -> 2,2GB"
+    echo "7. Steam 100MB"
     read -r choice
 
     if [ -z "$choice" ]; then
@@ -85,6 +86,16 @@ while true; do
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
                 ./progs/nerd_fonts.sh
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        7)
+            echo "Установка Steam 100MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                ./progs/steam.sh
                 echo "Установка завершена."
             else
                 echo "Установка отменена."

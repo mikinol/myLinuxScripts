@@ -24,6 +24,8 @@ case $ans in
         sudo apt install code
         ;;
     * )
-        echo "Установка Discord отменена, вы всё ещё можете установить Discord выполнив \"sudo apt install code\""
+        echo "Установка VsCode отменена, вы всё ещё можете установить VsCode выполнив \"sudo apt install code\""
         ;;
 esac
+
+

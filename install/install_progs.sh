@@ -52,6 +52,19 @@ case $ans in
         sudo apt install terminator
         ;;
     * )
-        echo "Установка Terminator отменена, вы всё ещё можете установить VsCode выполнив \"sudo apt install terminator\""
+        echo "Установка Terminator отменена, вы всё ещё можете установить Terminator выполнив \"sudo apt install terminator\""
+        ;;
+esac
+
+echo "Хотите ли вы установить Google Chrome? 109MB -> 353MB (Д/н)"
+read -r -n 1 ans
+
+case $ans in
+    [YyДд]* )
+        echo "Установка Google Chrome начинается."
+        sudo apt install google-chrome-stable
+        ;;
+    * )
+        echo "Установка Google Chrome отменена, вы всё ещё можете установить Google Chrome выполнив \"sudo apt install google-chrome-stable\""
         ;;
 esac

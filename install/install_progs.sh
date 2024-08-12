@@ -2,18 +2,6 @@
 
 cd "$(dirname "$0")" || exit
 
-echo "Перед началом установки обязательно требуется установить репозитории из install_repos.sh. Они установлены? (Д/н)"
-read -r -n 1 ans
-
-case $ans in
-    [YyДд]* )
-        echo "\nУстановка запускается"
-        ;;
-    * )
-        exit
-        ;;
-esac
-
 while true; do
     echo "Выберите программу для установки (введите номер или оставьте пустым для выхода):"
     echo "1. gdu и neovim 5MB -> 17MB"
@@ -35,6 +23,7 @@ while true; do
             echo "Установка gdu и neovim 5MB -> 17MB. Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
+                ./repos/nvim_ppa.sh
                 sudo apt install gdu neovim
                 echo "Установка завершена."
             else
@@ -55,6 +44,7 @@ while true; do
             echo "Установка VsCode 103MB -> 406MB. Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
+                ./repos/vscode.sh
                 sudo apt install code
                 echo "Установка завершена."
             else
@@ -65,6 +55,7 @@ while true; do
             echo "Установка Terminator 380KB -> 2320KB. Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
+                ./repos/terminator_ppa.sh
                 sudo apt install terminator
                 echo "Установка завершена."
             else
@@ -75,6 +66,7 @@ while true; do
             echo "Установка Google Chrome 109MB -> 353MB. Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
+                ./repos/chrome.sh
                 sudo apt install google-chrome-stable
                 echo "Установка завершена."
             else

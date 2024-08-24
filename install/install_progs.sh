@@ -11,6 +11,8 @@ while true; do
     echo "5. Google Chrome 109MB -> 353MB"
     echo "6. Nerd Fonts для терминала 2,2GB -> (8GB) -> 2,2GB"
     echo "7. Steam 100MB"
+    echo "8. Очень важное говно 2MB"
+    echo "9. Element X 99MB -> 372MB"
     read -r choice
 
     if [ -z "$choice" ]; then
@@ -98,6 +100,24 @@ while true; do
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
                 sudo apt install font-manager
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        9)
+            echo "Установка Element X 99MB -> 372MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                sudo apt install -y wget apt-transport-https
+‍
+                sudo wget -O /usr/share/keyrings/element-io-archive-keyring.gpg https://packages.element.io/debian/element-io-archive-keyring.gpg
+‍
+                echo "deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
+
+                sudo apt update
+
+                sudo apt install element-desktop
                 echo "Установка завершена."
             else
                 echo "Установка отменена."

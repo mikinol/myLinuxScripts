@@ -1,7 +1,6 @@
 #!/bin/bash
 
 cd "$(dirname "$0")" || exit
-
 while true; do
     echo "Выберите программу для установки (введите номер или оставьте пустым для выхода):"
     echo "1. gdu и neovim 5MB -> 17MB"
@@ -132,7 +131,21 @@ while true; do
                 echo "Установка отменена."
             fi
             ;;
-        *)
+        11)
+            echo "11. Fastfetch. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                ./repos/fastfetch_ppa.sh
+                echo "Удаление сушествуюшего neofetch"
+                sudo apt remove neofetch
+                echo "Установка fastfetch"
+                sudo apt install fastfetch
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        *)sudo add-apt-repository ppa:zhangsongcui3371/fastfetch
             echo "Неправильный выбор, пожалуйста, попробуйте снова."
             ;;
     esac

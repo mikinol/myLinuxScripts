@@ -10,7 +10,7 @@ while true; do
     echo "5. Google Chrome 109MB -> 353MB"
     echo "6. Nerd Fonts для терминала 2,2GB -> (8GB) -> 2,2GB"
     echo "7. Steam 100MB"
-    echo "8. Очень важное говно 2MB"
+    echo "8. Очень важное говно 5MB"
     echo "9. Element X 99MB -> 372MB"
     echo "10. Java (8,17,21)"
     read -r choice
@@ -96,10 +96,11 @@ while true; do
             fi
             ;;
         8)
-            echo "Установка очень важного говна на 2MB. Вы уверены? (Д/н)"
+            echo "Установка очень важного говна на 5MB. Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
-                sudo apt install font-manager
+                echo "Установка font-manager и gnome-sound-recorder"
+                sudo apt install font-manager gnome-sound-recorder
                 echo "Установка завершена."
             else
                 echo "Установка отменена."

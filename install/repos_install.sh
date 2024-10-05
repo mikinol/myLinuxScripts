@@ -11,3 +11,7 @@ cd "$(dirname "$0")" || exit
 ./repos/chrome.sh
 
 ./repos/jetbrains.sh
+
+./repos/fastfetch_ppa.sh
+
+./repos/newflatpak.sh

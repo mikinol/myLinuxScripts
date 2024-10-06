@@ -13,6 +13,8 @@ while true; do
     echo "8. Очень важное говно 5MB"
     echo "9. Element X 99MB -> 372MB"
     echo "10. Java (8,17,21)"
+    echo "11. Fastfetch"
+    echo "12. Kdenlive 218MB -> 650MB"
     read -r choice
 
     if [ -z "$choice" ]; then
@@ -146,7 +148,19 @@ while true; do
                 echo "Установка отменена."
             fi
             ;;
-        *)sudo add-apt-repository ppa:zhangsongcui3371/fastfetch
+        12)
+            echo "12. Kdenlive 218MB -> 650MB. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                ./repos/kdenlive_ppa.sh
+                echo "Установка Kdenlive"
+                sudo apt install kdenlive
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+        *)
             echo "Неправильный выбор, пожалуйста, попробуйте снова."
             ;;
     esac

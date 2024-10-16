@@ -101,8 +101,8 @@ while true; do
             echo "Установка очень важного говна на 5MB. Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
-                echo "Установка font-manager и gnome-sound-recorder"
-                sudo apt install font-manager gnome-sound-recorder
+                echo "Установка font-manager, gnome-sound-recorder, git, sudo"
+                sudo apt install font-manager gnome-sound-recorder, git, sudo
                 echo "Установка завершена."
             else
                 echo "Установка отменена."

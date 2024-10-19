@@ -15,6 +15,7 @@ while true; do
     echo "10. Java (8,17,21)"
     echo "11. Fastfetch"
     echo "12. Kdenlive 218MB -> 650MB"
+    echo "13. Удаление ненужного говна"
     read -r choice
 
     if [ -z "$choice" ]; then
@@ -160,6 +161,18 @@ while true; do
                 echo "Установка отменена."
             fi
             ;;
+        13)
+            echo "13. Удаление ненужного говна (firefox, hypnotix). Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                echo "Удаление firefox, hypnotix"
+                sudo apt remove firefox* hypnotix
+                echo "Установка завершена."
+            else
+                echo "Установка отменена."
+            fi
+            ;;
+
         *)
             echo "Неправильный выбор, пожалуйста, попробуйте снова."
             ;;

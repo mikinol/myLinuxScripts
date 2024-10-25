@@ -1,0 +1,109 @@
+import os
+import subprocess
+import sys
+
+
+def install_mktorrent():
+    """Устанавливает mktorrent, если он не установлен."""
+    try:
+        subprocess.run(["sudo", "apt", "install", "mktorrent", "-y"], check=True)
+        print("mktorrent успешно установлен.")
+    except subprocess.CalledProcessError:
+        print("Не удалось установить mktorrent. Пожалуйста, установите его вручную.")
+        sys.exit(1)
+
+
+def is_mktorrent_installed():
+    """Проверяет, установлен ли mktorrent."""
+    try:
+        subprocess.run(
+            ["mktorrent", "--version"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        return True
+    except FileNotFoundError:
+        return False
+    except subprocess.CalledProcessError:
+        return False
+
+
+def generate_torrent(
+    file_path, tracker_urls, web_seeds, output_name, comment=None, threads=1
+):
+    """
+    Генерирует торрент-файл с помощью mktorrent.
+
+    :param file_path: Путь к файлу, для которого создается торрент.
+    :param tracker_urls: Список URL трекеров.
+    :param web_seeds: Список URL веб-сида.
+    :param output_name: Имя выходного торрент-файла.
+    :param comment: Комментарий к торренту (опционально).
+    :param threads: Количество потоков для mktorrent.
+    """
+    # Проверка существования файла
+    if not os.path.isfile(file_path):
+        print(f"Файл не найден: {file_path}")
+        return
+
+    # Формирование команды для mktorrent
+    command = ["mktorrent", "-o", output_name, "-t", str(threads)]
+
+    # Добавление трекеров
+    for tracker in tracker_urls:
+        command += ["-a", tracker]
+
+    # Добавление веб-сидов
+    for seed in web_seeds:
+        command += ["-w", seed]
+
+    # Добавление комментария, если он указан
+    if comment:
+        command += ["-c", comment]
+
+    command.append(file_path)
+
+    # Выполнение команды
+    try:
+        subprocess.run(command, check=True)
+        print(f"Торрент-файл создан: {output_name}")
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при создании торрента: {e}")
+
+
+if __name__ == "__main__":
+    # Проверка наличия mktorrent
+    if not is_mktorrent_installed():
+        print("mktorrent не найден. Устанавливаю...")
+        install_mktorrent()
+
+    # Ввод данных от пользователя
+    file_path = input("Введите путь к файлу: ")
+
+    # Ввод трекеров
+    trackers_input = input(
+        "Введите URL трекеров, разделенные запятой (если нет, оставьте пустым): "
+    )
+    tracker_urls = [url.strip() for url in trackers_input.split(",") if url.strip()]
+
+    # Ввод веб-сидов
+    seeds_input = input(
+        "Введите URL веб-сидов, разделенные запятой (если нет, оставьте пустым): "
+    )
+    web_seeds = [url.strip() for url in seeds_input.split(",") if url.strip()]
+
+    # Опциональный ввод комментария
+    comment = (
+        input("Введите комментарий к торренту (если нет, оставьте пустым): ") or None
+    )
+
+    # Ввод количества потоков
+    threads = input("Введите количество потоков (по умолчанию 1): ")
+    threads = int(threads) if threads.isdigit() else 1
+
+    output_name = input(
+        "Введите имя выходного торрент-файла (например, my_torrent.torrent): "
+    )
+
+    generate_torrent(file_path, tracker_urls, web_seeds, output_name, comment, threads)

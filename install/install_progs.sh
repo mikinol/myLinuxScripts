@@ -15,7 +15,11 @@ while true; do
     echo "10. Java (8,17,21)"
     echo "11. Fastfetch"
     echo "12. Kdenlive 218MB -> 650MB"
+<<<<<<< HEAD
     echo "13. Удаление ненужного говна"
+=======
+    echo "13. Github CLI"
+>>>>>>> c3d8a1d (Добавлена установка github CLI)
     read -r choice
 
     if [ -z "$choice" ]; then
@@ -162,17 +166,29 @@ while true; do
             fi
             ;;
         13)
+<<<<<<< HEAD
             echo "13. Удаление ненужного говна (firefox, hypnotix). Вы уверены? (Д/н)"
             read -r -n 1 ans
             if [[ $ans =~ [YyДд]* ]]; then
                 echo "Удаление firefox, hypnotix"
                 sudo apt remove firefox* hypnotix
+=======
+            echo "12. Github CLI. Вы уверены? (Д/н)"
+            read -r -n 1 ans
+            if [[ $ans =~ [YyДд]* ]]; then
+                echo "Установка Github CLI"
+                ./repos/github_repo.sh
+                sudo apt install gh
+>>>>>>> c3d8a1d (Добавлена установка github CLI)
                 echo "Установка завершена."
             else
                 echo "Установка отменена."
             fi
             ;;
+<<<<<<< HEAD
 
+=======
+>>>>>>> c3d8a1d (Добавлена установка github CLI)
         *)
             echo "Неправильный выбор, пожалуйста, попробуйте снова."
             ;;

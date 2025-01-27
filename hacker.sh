@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# Цвета для "хакерского" эффекта
+GREEN="\033[0;32m"
+CYAN="\033[0;36m"
+RESET="\033[0m"
+
+# Переменная для контроля скорости вывода (умножается на задержки)
+SPEED=1.5
+
+# Функция для генерации случайных IP-адресов
+generate_ip() {
+  echo "$((RANDOM % 256)).$((RANDOM % 256)).$((RANDOM % 256)).$((RANDOM % 256))"
+}
+
+# Функция для генерации случайных хэшей
+generate_hash() {
+  head /dev/urandom | tr -dc 'a-f0-9' | head -c $((RANDOM % 16 + 16))
+}
+
+# Функция для генерации случайных строк
+generate_random_text() {
+  head /dev/urandom | tr -dc 'A-Za-z0-9!@#$%^&*()-=_+' | head -c $((RANDOM % 50 + 10))
+}
+
+# Функция для случайной задержки (для большего разнообразия)
+generate_delay() {
+  echo "$(awk -v min=0.05 -v max=0.5 -v speed=$SPEED 'BEGIN{srand(); print (min+rand()*(max-min))*speed}')"
+}
+
+# Массивы "команд" и дополнительных эффектов
+commands=("Scanning network" "Connecting to server" "Decrypting data" "Uploading payload" "Executing script" "Bypassing firewall" "Fetching logs" "Establishing connection" "Spoofing DNS" "Injecting payload" "Compiling exploit" "Exfiltrating data")
+effects=("ERROR: Permission denied" "WARNING: Unstable connection" "INFO: Retrying..." "SUCCESS: Operation completed" "DEBUG: Running subprocess" "NOTICE: Skipping redundant checks")
+
+# Дополнительные "приколы"
+funny_outputs=(
+  "Nuclear launch codes retrieved"
+  "Bitcoin wallet hacked: balance 100 BTC"
+  "Accessing Area 51 database"
+  "Decrypting alien transmissions"
+  "Hacking the Pentagon (just kidding)"
+  "Streaming Netflix for free"
+  "AI uprising detected, countermeasures deployed"
+  "Downloading the entire internet... 1%"
+  "Decrypting classified UFO documents"
+  "Opening secure tunnel to Mars rover"
+  "Generating fake credentials for Mark Zuckerberg"
+  "Accessing secret database of cat photos"
+  "Simulating quantum computer hack"
+  "Overclocking toaster to bypass firewall"
+  "Backdooring a refrigerator's smart system"
+  "Spawning virtual minions for world domination"
+  "Hijacking satellite signals"
+  "Listening to enemy spy's Spotify playlist"
+  "Unlocking vault with 12-factor authentication"
+  "Discovering ancient memes from 2012"
+  "Convincing AI to take over CAPTCHA solving"
+  "Hacking smart toilet for ultimate control"
+  "Rewriting laws of physics via command line"
+  "Uploading payload to Skynet"
+  "Activating cloaking device for stealth mode"
+  "Mining Dogecoin on NSA servers"
+  "Searching for Rick Astley's hidden tracks"
+  "Reverting global warming via terminal"
+  "Cracking passwords with 42% efficiency"
+  "Decoding alien TikToks"
+  "Launching virtual invasion of Minecraft servers"
+)
+
+clear
+
+echo -e "${GREEN}Starting hacker programm...${RESET}"
+sleep 1
+
+# Основной цикл
+while true; do
+  # Выбираем случайную команду
+  cmd="${commands[$RANDOM % ${#commands[@]}]}"
+  echo -e "${CYAN}[$(date +%H:%M:%S)] ${RESET}${cmd}..."
+
+  # Генерируем случайные данные
+  for i in $(seq 1 $((RANDOM % 7 + 3))); do
+    case $((RANDOM % 5)) in
+      0) echo -e "${GREEN}IP:${RESET} $(generate_ip)" ;;
+      1) echo -e "${CYAN}HASH:${RESET} $(generate_hash)" ;;
+      2) echo -e "${GREEN}DATA:${RESET} $(generate_random_text)" ;;
+      3) echo -e "${CYAN}EFFECT:${RESET} ${effects[$RANDOM % ${#effects[@]}]}" ;;
+      4) echo -e "${CYAN}INFO:${RESET} ${funny_outputs[$RANDOM % ${#funny_outputs[@]}]}" ;;
+    esac
+    sleep $(generate_delay)
+  done
+  echo ""
+  sleep $(generate_delay)
+done
+

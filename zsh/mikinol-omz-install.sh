@@ -11,7 +11,7 @@ fi
 
 mkdir -p ~/.oh-my-zsh/custom/plugins || exit 1
 
-ln -s $HOME/mylinuxScripts/zsh/mikinol-omz/ $HOME/.oh-my-zsh/custom/plugins/mikinol-omz
+ln -s $HOME/myLinuxScripts/zsh/mikinol-omz/ $HOME/.oh-my-zsh/custom/plugins/mikinol-omz
 
 echo "mikinol-omz плагин установлен теперь его можно добавить в .zshrc"
 

@@ -4,7 +4,7 @@ if [ ! -d "$HOME/.oh-my-zsh/" ]; then
     echo "Ошибка: директория ~/.oh-my-zsh/ не найдена." >&2
     exit 1
 fi
-if [ ! -d "$HOME/mylinuxScripts/" ]; then
+if [ ! -d "$HOME/myLinuxScripts/" ]; then
     echo "Ошибка: директория ~/mylinuxScripts/ не найдена." >&2
     exit 1
 fi

@@ -19,6 +19,13 @@ IGNORE_IPS=(
 # Интерфейс основной сети (замените enp42s0 на ваш интерфейс, если нужно)
 MAIN_INTERFACE="enp42s0"
 
+current_hostname=$(cat /proc/sys/kernel/hostname)
+
+echo $current_hostname
+if [[ "$current_hostname" == "mikinol-Lenovo" ]]; then
+  MAIN_INTERFACE=wlp2s0
+fi
+
 # Шлюз основной сети (замените 192.168.1.1 на ваш шлюз, если нужно)
 MAIN_GATEWAY="192.168.1.1"
 

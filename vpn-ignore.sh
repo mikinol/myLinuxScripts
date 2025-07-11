@@ -28,7 +28,7 @@ if [[ "$current_hostname" == "mikinol-Lenovo" ]]; then
 fi
 
 # Шлюз основной сети (замените 192.168.1.1 на ваш шлюз, если нужно)
-MAIN_GATEWAY="192.168.1.1"
+MAIN_GATEWAY=$(ip route show dev "$MAIN_INTERFACE" | grep "^default" | awk '{print $3}')
 
 # Проверка привилегий (скрипт должен выполняться от имени root)
 if [[ $EUID -ne 0 ]]; then

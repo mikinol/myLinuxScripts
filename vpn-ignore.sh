@@ -26,6 +26,9 @@ echo $current_hostname
 if [[ "$current_hostname" == "mikinol-Lenovo" ]]; then
   MAIN_INTERFACE=wlp2s0
 fi
+if [[ "$current_hostname" == "InBookY3HMAX" ]]; then
+  MAIN_INTERFACE=wlo1
+fi
 
 # Шлюз основной сети (замените 192.168.1.1 на ваш шлюз, если нужно)
 MAIN_GATEWAY=$(ip route show dev "$MAIN_INTERFACE" | grep "^default" | awk '{print $3}')

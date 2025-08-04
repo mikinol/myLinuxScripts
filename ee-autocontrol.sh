@@ -6,7 +6,7 @@ IDLE_COUNTER=0
 
 while true; do
 
-  IS_MUTED=$(pactl get-source-mute @DEFAULT_SOURCE@ | awk '{ print $2 }')
+  IS_MUTED=$(pactl get-source-mute alsa_input.pci-0000_00_1f.3.analog-stereo | awk '{ print $2 }')
 
   if [[ "$IS_MUTED" == "yes" ]]; then
     IDLE_COUNTER=$((IDLE_COUNTER + CHECK_INTERVAL))

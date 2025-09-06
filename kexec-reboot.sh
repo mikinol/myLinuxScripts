@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-KERNEL="/boot/vmlinuz-linux"
-INITRD="/boot/initramfs-linux.img"
+KERNEL="/boot/vmlinuz-linux-lts"
+INITRD="/boot/initramfs-linux-lts.img"
 CMDLINE="$(cat /proc/cmdline)"
 
 echo "[*] Проверка наличия необходимых файлов..."

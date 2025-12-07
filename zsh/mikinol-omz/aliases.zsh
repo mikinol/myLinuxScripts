@@ -7,3 +7,5 @@ alias x=exit
 alias py=python3
 
 alias chln="find . -type f -print0 | xargs -0 wc -l | sort -rn | head -n 20"
+
+alias ping6="ping -6"

@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+import subprocess
+import time
+
+old_check_interval = 5
+check_interval = 5
+IDLE_THRESHOLD = 30  # секунд
+idle_counter = 0
+
+def is_muted():
+    result = subprocess.run(
+        ["pactl", "get-source-mute", "alsa_input.pci-0000_00_1f.3.analog-stereo"],
+        capture_output=True, text=True
+    )
+    return "yes" in result.stdout
+
+def is_easyeffects_active():
+    result = subprocess.run(
+        ["systemctl", "--user", "is-active", "easyeffects"],
+        capture_output=True, text=True
+    )
+    return result.stdout.strip() == "active"
+
+def stop_easyeffects():
+    subprocess.run(["systemctl", "--user", "stop", "easyeffects"])
+
+def start_easyeffects():
+    subprocess.run(["systemctl", "--user", "start", "easyeffects"])
+
+while True:
+    muted = is_muted()
+    if muted:
+        idle_counter += old_check_interval
+    else:
+        idle_counter = 0
+
+    if idle_counter >= IDLE_THRESHOLD:
+        if is_easyeffects_active():
+            print("STOP")
+            check_interval = 5
+            stop_easyeffects()
+    elif not muted:
+        if not is_easyeffects_active():
+            print("START")
+            check_interval = 15
+            start_easyeffects()
+
+    old_check_interval = check_interval
+    time.sleep(check_interval)
+

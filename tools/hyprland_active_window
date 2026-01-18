@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+import subprocess
+import time
+import json
+
+CHECK_INTERVAL = 0.05
+
+while True:
+    try:
+        # Получаем активное окно в JSON
+        result = subprocess.run(
+            ["hyprctl", "activewindow", "-j"],
+            capture_output=True, text=True
+        )
+        info = json.loads(result.stdout)
+
+        # Проверяем тег
+        if any(tag.startswith("noscreenshare") for tag in info.get("tags", [])):
+            print("", flush=True)
+        else:
+            window_class = info.get("class", "")
+            window_title = info.get("title", "")
+            print(f"{window_class}: {window_title}", flush=True)
+
+    except Exception:
+        # Если что-то пошло не так, выводим пустую строку
+        print("", flush=True)
+
+    time.sleep(CHECK_INTERVAL)
+

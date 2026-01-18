@@ -1,5 +1,3 @@
-alias weather=~/mylinuxScripts/weather.sh
-
 alias l="ls -Alh"
 
 alias x=exit

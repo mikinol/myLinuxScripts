@@ -1,0 +1,19 @@
+#!/bin/sh
+# минимальный wrapper для rand_nginx_key
+
+# путь к каталогу скрипта
+DIR="$(cd "$(dirname "$0")" && pwd)"
+
+SRC="$DIR/src/rand_nginx_key.c"
+OUT="$DIR/build/rand_nginx_key"
+
+[ ! -f "$SRC" ] && { echo "Ошибка: $SRC не найден!"; exit 1; }
+
+mkdir -p "$DIR/build"
+
+# компиляция только если бинарь отсутствует или исходник новее
+[ ! -f "$OUT" ] || [ "$SRC" -nt "$OUT" ] && gcc -O2 -Wall -o "$OUT" "$SRC" || true
+
+# запускаем бинарь с передачей аргументов
+exec "$OUT" "$@"
+

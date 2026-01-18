@@ -1,15 +1,1 @@
-install/cprog/*.o
-install/cprog/progs_install
-
-# Игнорировать временные и кэш файлы
-install/cprog/*.tmp
-install/cprog/*.log
-install/cprog/*.bak
-install/cprog/*.swp
-install/cprog/*.cache
-install/cprog/*~
-install/cprog/.DS_Store
-
-# Исключить исходные и заголовочные файлы
-!install/cprog/*.cpp
-!install/cprog/*.h
+/bin/build/

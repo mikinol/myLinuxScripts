@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 MAIN_PATH="$HOME/projects/"
 
 cd "$MAIN_PATH" || exit

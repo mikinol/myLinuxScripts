@@ -9,3 +9,5 @@ source "${0:h}/check-term.zsh"
 
 # Добавлем copyfile
 source "${0:h}/copyfile.zsh"
+
+export PATH=$HOME/myLinuxScripts/bin:$PATH

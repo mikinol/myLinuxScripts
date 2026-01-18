@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Цвета для "хакерского" эффекта
 GREEN="\033[0;32m"
@@ -25,7 +25,7 @@ generate_random_text() {
 
 # Функция для случайной задержки (для большего разнообразия)
 generate_delay() {
-  echo "$(awk -v min=0.05 -v max=0.5 -v speed=$SPEED 'BEGIN{srand(); print (min+rand()*(max-min))*speed}')"
+  awk -v min=0.05 -v max=0.5 -v speed=$SPEED 'BEGIN{srand(); print (min+rand()*(max-min))*speed}'
 }
 
 # Массивы "команд" и дополнительных эффектов
@@ -79,7 +79,7 @@ while true; do
   echo -e "${CYAN}[$(date +%H:%M:%S)] ${RESET}${cmd}..."
 
   # Генерируем случайные данные
-  for i in $(seq 1 $((RANDOM % 7 + 3))); do
+  for _ in $(seq 1 $((RANDOM % 7 + 3))); do
     case $((RANDOM % 5)) in
       0) echo -e "${GREEN}IP:${RESET} $(generate_ip)" ;;
       1) echo -e "${CYAN}HASH:${RESET} $(generate_hash)" ;;
@@ -87,9 +87,9 @@ while true; do
       3) echo -e "${CYAN}EFFECT:${RESET} ${effects[$RANDOM % ${#effects[@]}]}" ;;
       4) echo -e "${CYAN}INFO:${RESET} ${funny_outputs[$RANDOM % ${#funny_outputs[@]}]}" ;;
     esac
-    sleep $(generate_delay)
+    sleep "$(generate_delay)"
   done
   echo ""
-  sleep $(generate_delay)
+  sleep "$(generate_delay)"
 done
 

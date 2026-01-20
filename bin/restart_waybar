@@ -1,4 +1,4 @@
 #!/bin/sh
-pkill -f "pactl subscribe"
-pkill waybar
+pkill -fx "pactl subscribe"
+pkill -x waybar
 waybar &

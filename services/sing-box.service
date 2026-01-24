@@ -1,0 +1,29 @@
+[Unit]
+Description=sing-box service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sing-box run
+WorkingDirectory=/etc/sing-box
+
+# Автоперезапуск
+Restart=on-failure
+RestartSec=5
+
+# Лимиты ресурсов
+CPUQuota=50%
+MemoryMax=512M
+MemorySwapMax=0
+TasksMax=512
+LimitNOFILE=1048576
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
+

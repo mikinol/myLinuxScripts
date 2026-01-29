@@ -51,7 +51,6 @@ signal.signal(signal.SIGPIPE, cleanup)
 # начальный вывод
 print(json.dumps(get_state()), flush=True)
 
-
 # подписка на события
 pactl_proc = subprocess.Popen(
     ["pactl", "subscribe"],

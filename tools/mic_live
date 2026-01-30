@@ -58,6 +58,7 @@ pactl_proc = subprocess.Popen(
     text=True
 )
 
+
 for line in pactl_proc.stdout:
     if "source" in line:
         print(json.dumps(get_state()), flush=True)

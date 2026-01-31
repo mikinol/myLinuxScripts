@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mv ~/storage/music/SoundRecorder/* ~/storage/shared/Общие/Диктофон/
+
+rm .ssh/config
+cp /storage/emulated/0/Configs/ssh-config ~/.ssh/config

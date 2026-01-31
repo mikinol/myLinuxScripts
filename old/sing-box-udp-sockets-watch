@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+INTERVAL=30  # секунд
+
+while true; do
+    TS=$(date "+%Y-%m-%d %H:%M:%S")
+    COUNT=$(ss -uapn | grep -c "sing-box")
+    echo "[$TS] UDP sockets: $COUNT"
+    sleep "$INTERVAL"
+done
+

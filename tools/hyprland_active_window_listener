@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+import selectors
+import socket
+import time
+import json
+import os
+
+CHECK_INTERVAL = 0.05
+SOCK_PATH = "/tmp/hypr_window_server.sock"
+
+runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+instance_sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
+
+
+
+def setup_server_socket():
+    if os.path.exists(SOCK_PATH):
+        os.remove(SOCK_PATH)
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.setblocking(False) # Важно для селектора
+    server.bind(SOCK_PATH)
+    server.listen(5)
+    return server
+
+sel = selectors.DefaultSelector()
+clients = set()
+
+# Регистрируем серверный сокет
+server = setup_server_socket()
+sel.register(server, selectors.EVENT_READ, data="accept")
+
+def get_active_window():
+    # Собираем путь к сокету из переменных окружения
+    sock_path = f"{runtime_dir}/hypr/{instance_sig}/.socket.sock"
+    
+    try:
+        # Создаем Unix domain socket (AF_UNIX)
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.connect(sock_path)
+                
+            client.sendall(b"j/activewindow")
+                
+            response = client.recv(16000)
+        
+        info = json.loads(response.decode('utf-8'))
+        # Проверяем тег
+        if any(tag.startswith("noscreenshare") for tag in info.get("tags", [])):
+            return ""
+        else:
+            window_class = info.get("class", "")
+            window_title = info.get("title", "")
+            return f"{window_class}: {window_title}"
+    except Exception:
+        return "Ошибка"
+
+last_update_time = 0
+try:
+    while True:
+        timeout = CHECK_INTERVAL if clients else None
+        events = sel.select(timeout=timeout)
+
+        for key, mask in events:
+            if key.data == "accept":
+                # Новое подключение от Waybar
+                conn, addr = server.accept()
+                conn.setblocking(False)
+                sel.register(conn, selectors.EVENT_READ, data="client")
+                clients.add(conn)
+                # Сразу отправляем текущее состояние новому клиенту
+                # (здесь вызови свою функцию получения окна и conn.send)
+                
+            elif key.data == "client":
+                # Если клиент закрылся (Waybar выключился)
+                conn = key.fileobj
+                sel.unregister(conn)
+                conn.close()
+                clients.remove(conn)
+
+        if clients:
+            current_time = time.time()
+            if current_time - last_update_time >= CHECK_INTERVAL:
+                output = get_active_window() + "\n"
+                
+                # 3. Рассылаем всем
+                for client in list(clients):
+                    try:
+                        client.sendall(output.encode())
+                    except:
+                        sel.unregister(client)
+                        client.close()
+                        clients.remove(client)
+                
+                last_update_time = current_time
+finally:
+    server.close()
+    os.remove(SOCK_PATH)

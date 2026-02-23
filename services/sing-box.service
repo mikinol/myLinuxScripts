@@ -5,6 +5,7 @@ Wants=network.target
 
 [Service]
 Type=simple
+ExecStartPre=/usr/local/bin/sing_box_download.sh
 ExecStart=/usr/bin/sing-box run
 WorkingDirectory=/etc/sing-box
 
@@ -21,7 +22,6 @@ LimitNOFILE=1048576
 
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=full
 ProtectHome=true
 
 [Install]

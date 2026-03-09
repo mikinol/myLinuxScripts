@@ -1,0 +1,26 @@
+#!/bin/sh
+
+DOMAIN="cdn.discordapp.com"
+MAX_TIME="3"
+ECH_CONF=$(dig +short HTTPS "$DOMAIN" | grep -oP 'ech=\K[^ ]+' | tr -d '"')
+TARGET_IP=$(dig +short A "$DOMAIN" | head -n 1)
+
+echo "IP адрес: $TARGET_IP"
+
+echo "Обычный запрос"
+curl "https://$DOMAIN" -sS -o /dev/null --max-time "$MAX_TIME" --resolve "cdn.discordapp.com:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
+
+echo "TLSv1.2"
+curl "https://$DOMAIN" --tlsv1.2 -sS -o /dev/null --max-time "$MAX_TIME" --resolve "cdn.discordapp.com:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
+
+if command -v docker > /dev/null 2>&1; then
+  echo "Проверка ECH GREASE"
+  docker run --rm -it ckinit/curl-ech:latest curl --ech grease "https://$DOMAIN" -o /dev/null --max-time "$MAX_TIME" -sS --resolve "$DOMAIN:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
+
+  echo "Проверка реального ECH"
+  docker run --rm -it ckinit/curl-ech:latest curl --ech "ecl:$ECH_CONF" "https://$DOMAIN" -o /dev/null --max-time "$MAX_TIME" -sS --resolve "$DOMAIN:443:$TARGET_IP"  && echo "✅ Успех" || echo "❌ Ошибка"
+
+else
+    echo "Ошибка: Docker не найден. Часть проверок не будет выполнена."
+    exit 1
+fi

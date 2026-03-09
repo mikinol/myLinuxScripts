@@ -8,10 +8,13 @@ TARGET_IP=$(dig +short A "$DOMAIN" | head -n 1)
 echo "IP адрес: $TARGET_IP"
 
 echo "Обычный запрос"
-curl "https://$DOMAIN" -sS -o /dev/null --max-time "$MAX_TIME" --resolve "cdn.discordapp.com:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
+curl "https://$DOMAIN" -sS -o /dev/null --max-time "$MAX_TIME" --resolve "$DOMAIN:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
 
 echo "TLSv1.2"
-curl "https://$DOMAIN" --tlsv1.2 -sS -o /dev/null --max-time "$MAX_TIME" --resolve "cdn.discordapp.com:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
+curl "https://$DOMAIN" --tlsv1.2 -sS -o /dev/null --max-time "$MAX_TIME" --resolve "$DOMAIN:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
+
+echo "QUIC"
+curl "https://$DOMAIN" --http3-only -sS -o /dev/null --max-time "$MAX_TIME" --resolve "$DOMAIN:443:$TARGET_IP" && echo "✅ Успех" || echo "❌ Ошибка"
 
 if command -v docker > /dev/null 2>&1; then
   echo "Проверка ECH GREASE"

@@ -13,3 +13,8 @@ source "${0:h}/copyfile.zsh"
 export PATH=$HOME/myLinuxScripts/bin:$PATH
 
 export GOPATH="$HOME/.cache/go/"
+
+ZCOMPDUMP_PATH="$HOME/.cache/zcompdump"
+mkdir -p "$ZCOMPDUMP_PATH"
+export ZSH_COMPDUMP="$ZCOMPDUMP_PATH/$(hostname)-$ZSH_VERSION"
+

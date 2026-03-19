@@ -6,7 +6,6 @@ import json
 import signal
 import subprocess
 
-
 MIC = os.environ.get("MIC")
 if not MIC:
     print(json.dumps({
@@ -15,17 +14,19 @@ if not MIC:
     }))
     sys.exit(1)
 
+env = os.environ.copy()
+env["LC_ALL"] = "C"
 
 def get_state():
     try:
         mute = subprocess.check_output(
             ["pactl", "get-source-mute", MIC],
-            text=True
+            text=True, env=env
         ).split()[1]
 
         vol = subprocess.check_output(
             ["pactl", "get-source-volume", MIC],
-            text=True
+            text=True, env=env
         ).split("/")[1].strip().replace("%", "")
 
         if mute == "yes":
@@ -55,7 +56,8 @@ print(json.dumps(get_state()), flush=True)
 pactl_proc = subprocess.Popen(
     ["pactl", "subscribe"],
     stdout=subprocess.PIPE,
-    text=True
+    text=True,
+    env=env
 )
 
 

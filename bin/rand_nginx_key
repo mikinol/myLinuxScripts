@@ -1,4 +1,6 @@
 #!/bin/sh
+unset NIX_ENFORCE_NO_NATIVE
+
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 SRC="$DIR/../src/rand_nginx_key.c"

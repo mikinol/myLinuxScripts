@@ -5,7 +5,7 @@ import time
 import json
 import os
 
-CHECK_INTERVAL = 0.05
+CHECK_INTERVAL = 0.1
 SOCK_PATH = "/tmp/hypr_window_server.sock"
 
 runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
@@ -54,6 +54,7 @@ def get_active_window():
         return "Ошибка"
 
 last_update_time = 0
+old_out = ""
 try:
     while True:
         timeout = CHECK_INTERVAL if clients else None
@@ -66,9 +67,11 @@ try:
                 conn.setblocking(False)
                 sel.register(conn, selectors.EVENT_READ, data="client")
                 clients.add(conn)
-                # Сразу отправляем текущее состояние новому клиенту
-                # (здесь вызови свою функцию получения окна и conn.send)
+
+                if old_out == "":
+                    old_out = get_active_window() + "\n"
                 
+                conn.sendall(old_out.encode())
             elif key.data == "client":
                 # Если клиент закрылся (Waybar выключился)
                 conn = key.fileobj
@@ -80,6 +83,10 @@ try:
             current_time = time.time()
             if current_time - last_update_time >= CHECK_INTERVAL:
                 output = get_active_window() + "\n"
+                if output == old_out:
+                    continue
+                else:
+                    old_out = output
                 
                 # 3. Рассылаем всем
                 for client in list(clients):

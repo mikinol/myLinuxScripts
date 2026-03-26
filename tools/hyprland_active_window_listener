@@ -5,12 +5,10 @@ import time
 import json
 import os
 
-CHECK_INTERVAL = 0.1
 SOCK_PATH = "/tmp/hypr_window_server.sock"
 
 runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
 instance_sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
-
 
 
 def setup_server_socket():
@@ -22,6 +20,14 @@ def setup_server_socket():
     server.listen(5)
     return server
 
+def setup_hyprland_event_socket():
+    # Сокет событий Hyprland (socket2)
+    hypr_sock2 = f"{runtime_dir}/hypr/{instance_sig}/.socket2.sock"
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.connect(hypr_sock2)
+    s.setblocking(False)
+    return s
+
 sel = selectors.DefaultSelector()
 clients = set()
 
@@ -29,36 +35,67 @@ clients = set()
 server = setup_server_socket()
 sel.register(server, selectors.EVENT_READ, data="accept")
 
-def get_active_window():
+hypr_events = setup_hyprland_event_socket()
+sel.register(hypr_events, selectors.EVENT_READ, data="hypr_event")
+
+def get_active_window(is_change_noscreenshare: bool = False):
     # Собираем путь к сокету из переменных окружения
     sock_path = f"{runtime_dir}/hypr/{instance_sig}/.socket.sock"
     
     try:
         # Создаем Unix domain socket (AF_UNIX)
-        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-            client.connect(sock_path)
-                
-            client.sendall(b"j/activewindow")
-                
-            response = client.recv(16000)
-        
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as cl:
+            cl.connect(sock_path)
+            
+            if is_change_noscreenshare:
+                # Важно: пробелы вокруг ';' и корректный синтаксис
+                cmd = b"[[BATCH]] dispatch tagwindow noscreenshare activewindow ; j/activewindow"
+            else:
+                cmd = b"j/activewindow"
+
+            cl.sendall(cmd)
+            response = cl.recv(16000)
+
+        response = response[response.find(b"{"):]
+            
         info = json.loads(response.decode('utf-8'))
-        # Проверяем тег
-        if any(tag.startswith("noscreenshare") for tag in info.get("tags", [])):
+        is_noscreenshare = any(tag.startswith("noscreenshare") for tag in info.get("tags", []))
+        window_class = info.get("class", "")
+        window_title = info.get("title", "")
+
+        if is_noscreenshare:
             return ""
         else:
-            window_class = info.get("class", "")
-            window_title = info.get("title", "")
             return f"{window_class}: {window_title.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")}"
-    except Exception:
-        return "Ошибка"
+    except Exception as ex:
+        raise ex
+        return str(ex)
 
-last_update_time = 0
+set_hide = False
 old_out = ""
+hypr_buffer = ""
+
+def broadcast():
+    global old_out, set_hide
+
+    output = get_active_window(is_change_noscreenshare=set_hide) + "\n"
+
+    if set_hide:
+        set_hide = False
+
+    if output != old_out:
+        old_out = output
+        for client in list(clients):
+            try:
+                client.sendall(output.encode())
+            except:
+                sel.unregister(client)
+                client.close()
+                clients.remove(client)
+
 try:
     while True:
-        timeout = CHECK_INTERVAL if clients else None
-        events = sel.select(timeout=timeout)
+        events = sel.select(timeout=None)
 
         for key, mask in events:
             if key.data == "accept":
@@ -73,31 +110,57 @@ try:
                 
                 conn.sendall(old_out.encode())
             elif key.data == "client":
-                # Если клиент закрылся (Waybar выключился)
                 conn = key.fileobj
-                sel.unregister(conn)
-                conn.close()
-                clients.remove(conn)
+                try:
+                    data = conn.recv(1024)
+                    if data:
+                        command = data.decode().strip()
+                        if command == "toggle_hide":
+                            set_hide = True
+                            broadcast()
+                    
+                    # В любом случае после получения данных или если клиент закрылся:
+                    sel.unregister(conn)
+                    conn.close()
+                    if conn in clients:
+                        clients.remove(conn)
+                except (BlockingIOError, InterruptedError):
+                    # Эти ошибки мы игнорируем, просто выходим из блока и ждем следующего цикла селектора
+                    pass
+                except Exception as ex:
+                    print(ex)
+                    sel.unregister(conn)
+                    conn.close()
+                    if conn in clients:
+                        clients.remove(conn)
+            elif key.data == "hypr_event":
+                try:
+                    raw_data = hypr_events.recv(4096)
+                    if not raw_data:
+                        raise RuntimeError("Hyprland socket closed")
+                    
+                    # Декодируем и добавляем в накопленный буфер
+                    hypr_buffer += raw_data.decode('utf-8')
+                    
+                    # Проверяем, есть ли в буфере хотя бы один перенос строки
+                    if '\n' in hypr_buffer:
+                        # Разделяем: всё до последнего \n — это готовые строки
+                        # Всё после последнего \n — это незаконченный кусок (хвост)
+                        lines = hypr_buffer.split('\n')
+                        hypr_buffer = lines.pop()  # Последний элемент (хвост) уходит обратно в буфер
+                        
+                        need_update = False
+                        for line in lines:
+                            if line.startswith("activewindow>>"):
+                                need_update = True
+                                break
+                        
+                        if need_update:
+                            broadcast()
+                            
+                except (BlockingIOError, InterruptedError):
+                    pass
 
-        if clients:
-            current_time = time.time()
-            if current_time - last_update_time >= CHECK_INTERVAL:
-                output = get_active_window() + "\n"
-                if output == old_out:
-                    continue
-                else:
-                    old_out = output
-                
-                # 3. Рассылаем всем
-                for client in list(clients):
-                    try:
-                        client.sendall(output.encode())
-                    except:
-                        sel.unregister(client)
-                        client.close()
-                        clients.remove(client)
-                
-                last_update_time = current_time
 finally:
     server.close()
     os.remove(SOCK_PATH)

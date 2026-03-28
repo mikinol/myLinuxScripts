@@ -1,6 +1,10 @@
 #!/bin/sh
 
-mv ~/storage/music/SoundRecorder/* ~/storage/shared/Общие/Диктофон/
+mv ~/storage/Music/SoundRecorder/* ~/storage/Общие/Диктофон/
 
-rm .ssh/config
-cp /storage/emulated/0/Configs/ssh-config ~/.ssh/config
+rm ~/.ssh/config
+cp ~/storage/Configs/ssh-config ~/.ssh/config
+
+for f in ~/storage/Pictures/Screenshot/*; do
+  mv -- "$f" ~/storage/Общие/Скриншоты/"phone_$(basename "$f" | sed 's/^Screenshot_//')"
+done

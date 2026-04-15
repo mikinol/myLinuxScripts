@@ -18,3 +18,4 @@ ZCOMPDUMP_PATH="$HOME/.cache/zcompdump"
 mkdir -p "$ZCOMPDUMP_PATH"
 export ZSH_COMPDUMP="$ZCOMPDUMP_PATH/$(hostname)-$ZSH_VERSION"
 
+source "${0:h}/../../additional_bashrc.sh"

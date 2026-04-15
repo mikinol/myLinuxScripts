@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+filename=~/Общие/Скриншоты/$prefix_$(date +%Y-%m-%d-%H%M%S).png
+
+grim -g "$(slurp)" "$filename"
+wl-copy < "$filename"
+

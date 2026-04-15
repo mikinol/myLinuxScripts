@@ -1,14 +1,7 @@
 #!/bin/sh
-unset NIX_ENFORCE_NO_NATIVE
-
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 SRC="$DIR/../src/discord_snowflake_parse.c"
 OUT="$DIR/../build_cache/discord_snowflake_parse"
 
-[ ! -f "$SRC" ] && { echo "Ошибка: $SRC не найден!"; exit 1; }
-mkdir -p "$DIR/../build_cache"
-
-[ ! -f "$OUT" ] || [ "$SRC" -nt "$OUT" ] && cc -O2 -Wall -march=native -o "$OUT" "$SRC" || true
-exec "$OUT" "$@"
-
+. "$DIR/../tools/compile_wrapper"

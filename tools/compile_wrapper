@@ -1,5 +1,8 @@
 unset NIX_ENFORCE_NO_NATIVE
 
+SRC="$DIR/../src/$NAME.c"
+OUT="$DIR/../build_cache/$NAME"
+
 [ ! -f "$SRC" ] && { echo "Ошибка: $SRC не найден!"; exit 1; }
 mkdir -p "$DIR/../build_cache"
 

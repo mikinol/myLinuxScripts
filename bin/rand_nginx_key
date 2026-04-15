@@ -1,8 +1,5 @@
 #!/bin/sh
 DIR="$(cd "$(dirname "$0")" && pwd)"
-
-SRC="$DIR/../src/rand_nginx_key.c"
-OUT="$DIR/../build_cache/rand_nginx_key"
+NAME="rand_nginx_key"
 
 . "$DIR/../tools/compile_wrapper"
-

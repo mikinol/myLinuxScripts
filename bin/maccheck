@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+MAC=$1
+# Приводим к нижнему регистру и убираем разделители для поиска
+CLEAN_MAC=$(echo "${MAC//[:.-]/}" | tr '[:upper:]' '[:lower:]')
+PREFIX=${CLEAN_MAC:0:6}
+
+if [[ -z "$MAC" ]]; then
+    echo "Использование: maccheck XX:XX:XX:XX:XX:XX"
+    exit 1
+fi
+
+echo "--- Анализ MAC: $MAC ---"
+
+# 1. Проверка на анонимность (Locally Administered Address)
+# Проверяем второй символ (должен быть 2, 6, a или e)
+SECOND_CHAR=${CLEAN_MAC:1:1}
+if [[ "$SECOND_CHAR" =~ [26ae] ]]; then
+    echo "[!] Тип: Анонимный/Рандомизированный (LAA)"
+else
+    echo "[+] Тип: Заводской (UAA)"
+fi
+
+IFS=':' read -ra DIRS <<< "$XDG_DATA_DIRS:/usr/share:/var/lib"
+
+OUI_PATH=""
+for dir in "${DIRS[@]}"; do
+    if [[ -f "$dir/hwdata/oui.txt" ]]; then
+        OUI_PATH="$dir/hwdata/oui.txt"
+        break
+    fi
+done
+
+if [[ -f "$OUI_PATH" ]]; then
+    # Ищем префик в формате XX-XX-XX (как в oui.txt)
+    SEARCH_PREFIX=$(echo "${PREFIX:0:2}-${PREFIX:2:2}-${PREFIX:4:2}" | tr '[:lower:]' '[:upper:]')
+    VENDOR=$(grep "$SEARCH_PREFIX" "$OUI_PATH" | cut -f 3-)
+    
+    if [[ -n "$VENDOR" ]]; then
+        echo "Производитель: $VENDOR"
+    else
+        echo "Производитель: Не найден в локальной базе"
+    fi
+else
+    echo "Ошибка: База OUI не найдена. Установите 'hwdata'."
+fi

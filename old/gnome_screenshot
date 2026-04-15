@@ -1,3 +1,0 @@
-#!/bin/sh
-filename="/home/mikinol/Изображения/Скриншоты/$(date +%Y-%m-%d_%H-%M-%S).png"
-exec gnome-screenshot -a -c -f "$filename"

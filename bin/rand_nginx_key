@@ -1,5 +1,0 @@
-#!/bin/sh
-DIR="$(cd "$(dirname "$0")" && pwd)"
-NAME="rand_nginx_key"
-
-. "$DIR/../tools/compile_wrapper"

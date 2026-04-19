@@ -1,0 +1,4 @@
+#!/bin/sh
+grim -g "$(slurp)" | \
+tee "~/Общие/Скриншоты/$prefix_$(date +%Y-%m-%d-%H%M%S).png" | \
+wl-copy --type image/png

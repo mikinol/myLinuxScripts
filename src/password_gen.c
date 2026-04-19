@@ -81,6 +81,12 @@ int main(int argc, char **argv) {
     pool_size += strlen(symbols);
   }
 
+  if (pool_size == 0) {
+
+    fprintf(stderr, "Ошибка: количество доступных символов = 0\n");
+    return 1;
+  }
+
   unsigned char buffer[BUF_SIZE];
   int bytes_read = 0;
   int current_byte = 0;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/random.h>
 #include <unistd.h>
 
 #define BUF_SIZE 64
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  char pool[256];
+  char pool[53 + 10 + 25];
   unsigned char pool_size = 0;
 
   if (contains_chars) {
@@ -88,28 +89,25 @@ int main(int argc, char **argv) {
   }
 
   unsigned char buffer[BUF_SIZE];
+  int limit = 256 - (256 % pool_size);
   int bytes_read = 0;
   int current_byte = 0;
-
-  int urandom_fd = open("/dev/urandom", O_RDONLY);
-  if (urandom_fd < 0) {
-    perror("Ошибка открытия /dev/urandom");
-    return 1;
-  }
 
   for (int i = 0; i < count; i++) {
     for (int j = 0; j < length; j++) {
       unsigned char byte;
       while (1) {
         if (current_byte >= bytes_read) {
-          bytes_read = read(urandom_fd, buffer, BUF_SIZE);
-          if (bytes_read <= 0)
+          bytes_read = getrandom(buffer, BUF_SIZE, 0);
+          if (bytes_read <= 0) {
+            perror("getrandom failed");
             exit(1);
+          }
           current_byte = 0;
         }
 
         byte = buffer[current_byte++];
-        if (byte < pool_size - 1)
+        if (byte < limit)
           break;
       }
       putchar(pool[byte % pool_size]);
@@ -117,6 +115,5 @@ int main(int argc, char **argv) {
     putchar('\n');
   }
 
-  close(urandom_fd);
   return 0;
 }

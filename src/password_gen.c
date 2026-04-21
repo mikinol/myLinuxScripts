@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
             "Недостаточно агрументов, password_gen <длинна пароля> <количество "
             "паролей> (+s включает специальные символы) (-c выключает символы) "
             "(-n выключает цифры)\nИли можно password_gen <длинна пароля> "
-            "<количество паролей> \"в кавычках список доступных символов\"");
+            "<количество паролей> <список доступных символов>");
     return 1;
   }
 
@@ -70,26 +70,17 @@ int main(int argc, char **argv) {
     }
   }
 
-  char pool[255];
-  unsigned char pool_size = 0;
+  char pool[256];
+  int pool_size = 0;
 
   if (argc > 3 && *argv[3] != '-' && *argv[3] != '+') {
-    // Сто проц не GPT
+    char *src = argv[3];
+    pool_size = strlen(src);
 
-    char *src = argv[3] + 1;
-
-    // ищем конец строки или закрывающую кавычку
-    char *end = strchr(src, '"');
-    if (!end) {
-      end = src + strlen(src);
-    }
-
-    // считаем длину
-    pool_size = end - src;
-
-    // защита от переполнения
-    if (pool_size >= sizeof(pool)) {
-      pool_size = sizeof(pool) - 1;
+    if (pool_size > sizeof(pool)) {
+      fprintf(stderr, "Ошибка парсинга аргументов: словарь, имеет больше чем "
+                      "256 символов\n");
+      return 1;
     }
 
     memcpy(pool, src, pool_size);

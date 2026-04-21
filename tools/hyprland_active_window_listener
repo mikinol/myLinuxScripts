@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import selectors
 import socket
-import time
 import json
 import os
 
@@ -69,7 +68,6 @@ def get_active_window(is_change_noscreenshare: bool = False):
             return f"{window_class}: {window_title.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")}"
     except Exception as ex:
         raise ex
-        return str(ex)
 
 set_hide = False
 old_out = ""
@@ -106,7 +104,10 @@ try:
                 clients.add(conn)
 
                 if old_out == "":
-                    old_out = get_active_window() + "\n"
+                    try:
+                        old_out = get_active_window() + "\n"
+                    except Exception as ex:
+                        print(ex)
                 
                 conn.sendall(old_out.encode())
             elif key.data == "client":
@@ -117,7 +118,10 @@ try:
                         command = data.decode().strip()
                         if command == "toggle_hide":
                             set_hide = True
-                            broadcast()
+                            try:
+                                broadcast()
+                            except Exception as ex:
+                                print(ex)
                     
                     # В любом случае после получения данных или если клиент закрылся:
                     sel.unregister(conn)
@@ -156,7 +160,10 @@ try:
                                 break
                         
                         if need_update:
-                            broadcast()
+                            try:
+                                broadcast()
+                            except Exception as ex:
+                                print(ex)
                             
                 except (BlockingIOError, InterruptedError):
                     pass

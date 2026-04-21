@@ -4,8 +4,6 @@ export EDITOR='nvim'
 # Проверяем TERM
 source "${0:h}/check-term.zsh"
 
-source "${0:h}/copyfile.zsh"
-
 export PATH=$HOME/myLinuxScripts/bin:$PATH
 
 export GOPATH="$HOME/.cache/go/"

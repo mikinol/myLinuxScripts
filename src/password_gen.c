@@ -28,40 +28,76 @@ enum dictionaries parse_dict(const char *arg) {
   return UNKNOWN;
 }
 
-int main(int argc, char **argv) {
-  if (argc < 3) {
-    fprintf(stderr,
-            "Недостаточно агрументов, password_gen <длинна пароля> <количество "
-            "паролей> (+s включает специальные символы) (-c выключает символы) "
-            "(-n выключает цифры)\nИли можно password_gen <длинна пароля> "
-            "<количество паролей> <список доступных символов>\nИ ещё можно "
-            "использовать другие словари password_gen <длинна пароля> "
-            "<количество паролей> @<название словаря>\nСловари:\n- hexupper — "
-            "HEX с большими буквами\n- hexlower — HEX с маленькими буквами");
-    return 1;
-  }
+void help() {
+  fprintf(
+      stderr,
+      "Недостаточно агрументов, "
+      "password_gen <длинна пароля> <количество паролей> (+s включает специальные символы) (-c выключает символы) (-n выключает цифры)\n"
+      "Или можно password_gen <длинна пароля> <количество паролей> <список доступных символов>\n"
+      "И ещё можно использовать другие словари "
+      "password_gen <длинна пароля> <количество паролей> @<название словаря>\n"
+      "Словари:\n"
+      "- hexupper — HEX с большими буквами\n"
+      "- hexlower — HEX с маленькими буквами");
+  exit(1);
+}
 
+void parse_length_and_count(unsigned long long *length, unsigned long long *count, char **argv) {
   char *end;
-  unsigned long long length = strtoull(argv[1], &end, 10);
+
+  *length = strtoull(argv[1], &end, 10);
 
   if (end == argv[1] || *end != '\0') {
     fprintf(stderr, "Ошибка парсинга аргументов: длинна пароля не число\n");
-    return 1;
+    exit(1);
   }
 
-  unsigned long long count = strtoull(argv[2], &end, 10);
+  *count = strtoull(argv[2], &end, 10);
 
   if (end == argv[2] || *end != '\0') {
-    fprintf(stderr,
-            "Ошибка парсинга аргументов: количество паролей не число\n");
-    return 1;
+    fprintf(stderr, "Ошибка парсинга аргументов: количество паролей не число\n");
+    exit(1);
+  }
+}
+
+int main(int argc, char **argv) {
+  if (argc < 3) {
+    help();
   }
 
-  bool contains_chars = true;
-  bool contains_symbols = false;
-  bool contains_numbers = true;
+  unsigned long long length, count;
+  parse_length_and_count(&length, &count, argv);
 
-  if (argc > 3 && (*argv[3] == '-' || *argv[3] == '+')) {
+  char pool[256];
+  int pool_size = 0;
+  enum dictionaries dict = UNKNOWN;
+
+  if (argc > 3 && *argv[3] == '@') {
+    dict = parse_dict(argv[3] + 1);
+
+    if (dict == UNKNOWN) {
+      fprintf(stderr, "Неизвестный словарь: %s\n", argv[3] + 1);
+      exit(1);
+    }
+
+    pool_size = strlen(dicts[dict]);
+    memcpy(pool, dicts[dict], pool_size);
+  } else if (argc > 3 && *argv[3] != '-' && *argv[3] != '+') {
+    char *src = argv[3];
+    pool_size = strlen(src);
+
+    if (pool_size > sizeof(pool)) {
+      fprintf(stderr, "Ошибка парсинга аргументов: словарь, имеет больше чем "
+                      "256 символов\n");
+      return 1;
+    }
+
+    memcpy(pool, src, pool_size);
+  } else if (argc == 3 || (argc > 3 && (*argv[3] == '-' || *argv[3] == '+'))) {
+    bool contains_chars = true;
+    bool contains_symbols = false;
+    bool contains_numbers = true;
+
     for (int i = 3; i < argc; i++) {
       char *arg = argv[i];
 
@@ -86,34 +122,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Неизвестный тип флага: %c\n", arg[1]);
       }
     }
-  }
 
-  char pool[256];
-  enum dictionaries dict = UNKNOWN;
-  int pool_size = 0;
-
-  if (argc > 3 && *argv[3] == '@') {
-    dict = parse_dict(argv[3] + 1);
-
-    if (dict == UNKNOWN) {
-      fprintf(stderr, "Неизвестный словарь: %s\n", argv[3] + 1);
-      exit(1);
-    }
-
-    pool_size = strlen(dicts[dict]);
-    memcpy(pool, dicts[dict], pool_size);
-  } else if (argc > 3 && *argv[3] != '-' && *argv[3] != '+') {
-    char *src = argv[3];
-    pool_size = strlen(src);
-
-    if (pool_size > sizeof(pool)) {
-      fprintf(stderr, "Ошибка парсинга аргументов: словарь, имеет больше чем "
-                      "256 символов\n");
-      return 1;
-    }
-
-    memcpy(pool, src, pool_size);
-  } else {
     if (contains_chars) {
       memcpy(pool + pool_size, letters, strlen(letters));
       pool_size += strlen(letters);

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/random.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #define BUF_SIZE 64
@@ -17,7 +18,8 @@ int main(int argc, char **argv) {
     fprintf(stderr,
             "Недостаточно агрументов, password_gen <длинна пароля> <количество "
             "паролей> (+s включает специальные символы) (-c выключает символы) "
-            "(-n выключает цифры)\n");
+            "(-n выключает цифры)\nИли можно password_gen <длинна пароля> "
+            "<количество паролей> \"в кавычках список доступных символов\"");
     return 1;
   }
 
@@ -31,7 +33,7 @@ int main(int argc, char **argv) {
 
   unsigned long long count = strtoull(argv[2], &end, 10);
 
-  if (end == argv[1] || *end != '\0') {
+  if (end == argv[2] || *end != '\0') {
     fprintf(stderr,
             "Ошибка парсинга аргументов: количество паролей не число\n");
     return 1;
@@ -41,45 +43,69 @@ int main(int argc, char **argv) {
   bool contains_symbols = false;
   bool contains_numbers = true;
 
-  for (int i = 3; i < argc; i++) {
-    char *arg = argv[i];
+  if (argc > 3 && (*argv[3] == '-' || *argv[3] == '+')) {
+    for (int i = 3; i < argc; i++) {
+      char *arg = argv[i];
 
-    if (strlen(arg) != 2 || (arg[0] != '+' && arg[0] != '-')) {
-      fprintf(stderr, "Проигнорирован неверный флаг: %s\n", arg);
-      continue;
-    }
+      if (strlen(arg) != 2 || (arg[0] != '+' && arg[0] != '-')) {
+        fprintf(stderr, "Проигнорирован неверный флаг: %s\n", arg);
+        continue;
+      }
 
-    bool state = (arg[0] == '+');
+      bool state = (arg[0] == '+');
 
-    switch (arg[1]) {
-    case 'c':
-      contains_chars = state;
-      break;
-    case 's':
-      contains_symbols = state;
-      break;
-    case 'n':
-      contains_numbers = state;
-      break;
-    default:
-      fprintf(stderr, "Неизвестный тип флага: %c\n", arg[1]);
+      switch (arg[1]) {
+      case 'c':
+        contains_chars = state;
+        break;
+      case 's':
+        contains_symbols = state;
+        break;
+      case 'n':
+        contains_numbers = state;
+        break;
+      default:
+        fprintf(stderr, "Неизвестный тип флага: %c\n", arg[1]);
+      }
     }
   }
 
-  char pool[53 + 10 + 25];
+  char pool[255];
   unsigned char pool_size = 0;
 
-  if (contains_chars) {
-    memcpy(pool + pool_size, letters, strlen(letters));
-    pool_size += strlen(letters);
-  }
-  if (contains_numbers) {
-    memcpy(pool + pool_size, numbers, strlen(numbers));
-    pool_size += strlen(numbers);
-  }
-  if (contains_symbols) {
-    memcpy(pool + pool_size, symbols, strlen(symbols));
-    pool_size += strlen(symbols);
+  if (argc > 3 && *argv[3] != '-' && *argv[3] != '+') {
+    // Сто проц не GPT
+
+    char *src = argv[3] + 1;
+
+    // ищем конец строки или закрывающую кавычку
+    char *end = strchr(src, '"');
+    if (!end) {
+      end = src + strlen(src);
+    }
+
+    // считаем длину
+    pool_size = end - src;
+
+    // защита от переполнения
+    if (pool_size >= sizeof(pool)) {
+      pool_size = sizeof(pool) - 1;
+    }
+
+    memcpy(pool, src, pool_size);
+  } else {
+    if (contains_chars) {
+      memcpy(pool + pool_size, letters, strlen(letters));
+      pool_size += strlen(letters);
+    }
+    if (contains_numbers) {
+      memcpy(pool + pool_size, numbers, strlen(numbers));
+      pool_size += strlen(numbers);
+    }
+    if (contains_symbols) {
+      memcpy(pool + pool_size, symbols, strlen(symbols));
+      pool_size += strlen(symbols);
+    }
   }
 
   if (pool_size == 0) {
@@ -98,7 +124,7 @@ int main(int argc, char **argv) {
       unsigned char byte;
       while (1) {
         if (current_byte >= bytes_read) {
-          bytes_read = getrandom(buffer, BUF_SIZE, 0);
+          bytes_read = syscall(SYS_getrandom, buffer, BUF_SIZE, 0);
           if (bytes_read <= 0) {
             perror("getrandom failed");
             exit(1);

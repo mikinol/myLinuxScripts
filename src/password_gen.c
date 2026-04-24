@@ -9,10 +9,6 @@
 
 #define BUF_SIZE 64
 
-const char letters[53] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const char numbers[10] = "0123456789";
-const char symbols[25] = "!@#$%^&*()_+[]{}|;:',.<>?";
-
 const char *dicts[3] = {
     "0123456789ABCDEF", // HEX с большими  буквами
     "0123456789abcdef", // HEX с маленькими буквами
@@ -60,6 +56,79 @@ void parse_length_and_count(unsigned long long *length, unsigned long long *coun
   }
 }
 
+void parse_predefined_dictionary_from_argv(enum dictionaries *dict, int *pool_size, char *pool, char **argv) {
+  *dict = parse_dict(argv[3] + 1);
+
+  if (*dict == UNKNOWN) {
+    fprintf(stderr, "Неизвестный словарь: %s\n", argv[3] + 1);
+    exit(1);
+  }
+
+  *pool_size = strlen(dicts[*dict]);
+  memcpy(pool, dicts[*dict], *pool_size);
+}
+
+void parse_dictionary_from_argv(int *pool_size, char *pool, char **argv) {
+  char *src = argv[3];
+  *pool_size = strlen(src);
+
+  if (*pool_size > 256) {
+    fprintf(stderr, "Ошибка парсинга аргументов: словарь, имеет больше чем "
+                    "256 символов\n");
+    exit(1);
+  }
+
+  memcpy(pool, src, *pool_size);
+}
+
+void parse_contains_dictionary_from_argv(int *pool_size, char *pool, const int argc, char **argv) {
+  const char letters[53] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const char numbers[10] = "0123456789";
+  const char symbols[25] = "!@#$%^&*()_+[]{}|;:',.<>?";
+
+  bool contains_chars = true;
+  bool contains_symbols = false;
+  bool contains_numbers = true;
+
+  for (int i = 3; i < argc; i++) {
+    char *arg = argv[i];
+
+    if (strlen(arg) != 2 || (arg[0] != '+' && arg[0] != '-')) {
+      fprintf(stderr, "Проигнорирован неверный флаг: %s\n", arg);
+      continue;
+    }
+
+    bool state = (arg[0] == '+');
+
+    switch (arg[1]) {
+    case 'c':
+      contains_chars = state;
+      break;
+    case 's':
+      contains_symbols = state;
+      break;
+    case 'n':
+      contains_numbers = state;
+      break;
+    default:
+      fprintf(stderr, "Неизвестный тип флага: %c\n", arg[1]);
+    }
+  }
+
+  if (contains_chars) {
+    memcpy(pool + *pool_size, letters, sizeof(letters));
+    *pool_size += sizeof(letters);
+  }
+  if (contains_numbers) {
+    memcpy(pool + *pool_size, numbers, sizeof(numbers));
+    *pool_size += sizeof(numbers);
+  }
+  if (contains_symbols) {
+    memcpy(pool + *pool_size, symbols, sizeof(symbols));
+    *pool_size += sizeof(symbols);
+  }
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     help();
@@ -73,68 +142,11 @@ int main(int argc, char **argv) {
   enum dictionaries dict = UNKNOWN;
 
   if (argc > 3 && *argv[3] == '@') {
-    dict = parse_dict(argv[3] + 1);
-
-    if (dict == UNKNOWN) {
-      fprintf(stderr, "Неизвестный словарь: %s\n", argv[3] + 1);
-      exit(1);
-    }
-
-    pool_size = strlen(dicts[dict]);
-    memcpy(pool, dicts[dict], pool_size);
+    parse_predefined_dictionary_from_argv(&dict, &pool_size, pool, argv);
   } else if (argc > 3 && *argv[3] != '-' && *argv[3] != '+') {
-    char *src = argv[3];
-    pool_size = strlen(src);
-
-    if (pool_size > sizeof(pool)) {
-      fprintf(stderr, "Ошибка парсинга аргументов: словарь, имеет больше чем "
-                      "256 символов\n");
-      return 1;
-    }
-
-    memcpy(pool, src, pool_size);
+    parse_dictionary_from_argv(&pool_size, pool, argv);
   } else if (argc == 3 || (argc > 3 && (*argv[3] == '-' || *argv[3] == '+'))) {
-    bool contains_chars = true;
-    bool contains_symbols = false;
-    bool contains_numbers = true;
-
-    for (int i = 3; i < argc; i++) {
-      char *arg = argv[i];
-
-      if (strlen(arg) != 2 || (arg[0] != '+' && arg[0] != '-')) {
-        fprintf(stderr, "Проигнорирован неверный флаг: %s\n", arg);
-        continue;
-      }
-
-      bool state = (arg[0] == '+');
-
-      switch (arg[1]) {
-      case 'c':
-        contains_chars = state;
-        break;
-      case 's':
-        contains_symbols = state;
-        break;
-      case 'n':
-        contains_numbers = state;
-        break;
-      default:
-        fprintf(stderr, "Неизвестный тип флага: %c\n", arg[1]);
-      }
-    }
-
-    if (contains_chars) {
-      memcpy(pool + pool_size, letters, strlen(letters));
-      pool_size += strlen(letters);
-    }
-    if (contains_numbers) {
-      memcpy(pool + pool_size, numbers, strlen(numbers));
-      pool_size += strlen(numbers);
-    }
-    if (contains_symbols) {
-      memcpy(pool + pool_size, symbols, strlen(symbols));
-      pool_size += strlen(symbols);
-    }
+    parse_contains_dictionary_from_argv(&pool_size, pool, argc, argv);
   }
 
   if (pool_size == 0) {

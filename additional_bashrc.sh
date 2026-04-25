@@ -9,6 +9,31 @@ alias tolower='awk "{print tolower(\$0)}"'
 
 alias l="ls -Alh"
 
+listen_pipe() {
+    local pipe_name="/tmp/${1:-mypipe}"
+
+    # Создаем именованный канал, если его еще нет
+    if [[ ! -p "$pipe_name" ]]; then
+        mkfifo "$pipe_name"
+        echo "Pipe created: $pipe_name"
+    else
+        echo "Using existing pipe: $pipe_name"
+    fi
+
+    # Настраиваем ловушку: при выходе (EXIT) или прерывании (INT/TERM) удалить файл
+    trap 'rm -f "$pipe_name"; echo -e "\nPipe deleted. Exiting..."; return' INT TERM EXIT
+
+    echo "Listening... (Press Ctrl+C to stop)"
+    
+    # Запускаем чтение в бесконечном цикле, чтобы канал не закрывался 
+    # после того, как пишущая программа закончит работу
+    while true; do
+        if read -r line < "$pipe_name"; then
+            echo "$line"
+        fi
+    done
+}
+
 nsh() {
   if [ $# -gt 0 ]; then
     nix-shell -p "$@" --run zsh

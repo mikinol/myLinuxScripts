@@ -9,6 +9,18 @@ alias tolower='awk "{print tolower(\$0)}"'
 
 alias l="ls -Alh"
 
+alias rm="rm -i"
+alias "rm -f"="rm -fi"
+alias "rm -r"="rm -ri"
+alias "rm -rf"="rm -rfi"
+alias "sudo rm"="sudo rm -i"
+alias "sudo rm -f"="sudo rm -fi"
+alias "sudo rm -r"="sudo rm -ri"
+alias "sudo rm -rf"="sudo rm -rfi"
+
+alias l="ls -Alh"
+alias ff="fastfetch"
+
 listen_pipe() {
     local pipe_name="/tmp/${1:-mypipe}"
 

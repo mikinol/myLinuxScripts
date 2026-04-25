@@ -14,23 +14,21 @@ listen_pipe() {
 
     # Создаем именованный канал, если его еще нет
     if [[ ! -p "$pipe_name" ]]; then
-        mkfifo "$pipe_name"
+        touch "$pipe_name"
         echo "Pipe created: $pipe_name"
     else
         echo "Using existing pipe: $pipe_name"
     fi
 
     # Настраиваем ловушку: при выходе (EXIT) или прерывании (INT/TERM) удалить файл
-    trap 'rm -f "$pipe_name"; echo -e "\nPipe deleted. Exiting..."; return' INT TERM EXIT
+    trap 'rm -f "$pipe_name"; return' INT TERM EXIT
 
     echo "Listening... (Press Ctrl+C to stop)"
     
     # Запускаем чтение в бесконечном цикле, чтобы канал не закрывался 
     # после того, как пишущая программа закончит работу
     while true; do
-        if read -r line < "$pipe_name"; then
-            echo "$line"
-        fi
+        tail -f "$pipe_name"
     done
 }
 

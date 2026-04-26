@@ -1,11 +1,5 @@
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/random.h>
-#include <sys/syscall.h>
-#include <unistd.h>
+#include "../nolibc/nolibc.h"
+#include "sys/syscall.h"
 
 #define BUF_SIZE 64
 
@@ -34,7 +28,7 @@ void help() {
       "password_gen <длинна пароля> <количество паролей> @<название словаря>\n"
       "Словари:\n"
       "- hexupper — HEX с большими буквами\n"
-      "- hexlower — HEX с маленькими буквами");
+      "- hexlower — HEX с маленькими буквами\n");
   exit(1);
 }
 
@@ -82,7 +76,7 @@ void parse_dictionary_from_argv(int *pool_size, char *pool, char **argv) {
 }
 
 void parse_contains_dictionary_from_argv(int *pool_size, char *pool, const int argc, char **argv) {
-  const char letters[53] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const char letters[52] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const char numbers[10] = "0123456789";
   const char symbols[25] = "!@#$%^&*()_+[]{}|;:',.<>?";
 
@@ -139,6 +133,7 @@ int main(int argc, char **argv) {
 
   char pool[256];
   int pool_size = 0;
+
   enum dictionaries dict = UNKNOWN;
 
   if (argc > 3 && *argv[3] == '@') {
@@ -155,42 +150,92 @@ int main(int argc, char **argv) {
   }
 
   unsigned char buffer[BUF_SIZE];
-  bool is_four = pool_size <= 16;
+  const bool is_four = pool_size <= 16;
+
   int limit = (is_four ? 16 : 256) - ((is_four ? 16 : 256) % pool_size);
+
   int bytes_read = 0;
   int current_byte = 0;
 
-  for (int i = 0; i < count; i++) {
-    for (int j = 0; j < length; j++) {
-      unsigned char byte;
-      while (1) {
-        if (current_byte >= bytes_read) {
-          bytes_read = syscall(SYS_getrandom, buffer, BUF_SIZE, 0);
-          if (bytes_read <= 0) {
-            perror("getrandom failed");
-            exit(1);
-          }
+  char writebuffer[16384];
+  int current_write_byte = 0;
 
-          if (is_four)
-            bytes_read = bytes_read * 2;
-          current_byte = 0;
-        }
+  int current_password = 0;
+  int current_password_char = 0;
 
-        if (is_four) {
-          byte = buffer[current_byte >> 1];
-          byte = (byte >> ((1 - (current_byte & 1)) << 2)) & 0x0F;
-          current_byte++;
-        } else {
-          byte = buffer[current_byte++];
-        }
-
-        if (byte < limit)
-          break;
+  unsigned char byte;
+  while (true) {
+    if (current_byte >= bytes_read) {
+      current_byte = 0;
+      bytes_read = syscall(SYS_getrandom, buffer, BUF_SIZE, 0);
+      if (bytes_read <= 0) {
+        perror("getrandom failed");
+        exit(1);
       }
-      putchar(pool[byte % pool_size]);
     }
-    putchar('\n');
+
+    if (is_four) {
+      byte = buffer[current_byte] >> 4;
+      if (byte < limit) {
+        writebuffer[current_write_byte++] = pool[byte % pool_size];
+        current_password_char++;
+
+        if (current_password_char == length) {
+          writebuffer[current_write_byte++] = '\n';
+          current_password_char = 0;
+          current_password++;
+        }
+
+        if (current_write_byte > sizeof(writebuffer) - 2) {
+          write(1, writebuffer, current_write_byte);
+          current_write_byte = 0;
+        }
+      }
+
+      byte = buffer[current_byte++] & 0x0F;
+      if (byte < limit) {
+        writebuffer[current_write_byte++] = pool[byte % pool_size];
+        current_password_char++;
+
+        if (current_password_char == length) {
+          writebuffer[current_write_byte++] = '\n';
+          current_password_char = 0;
+          current_password++;
+        }
+
+        if (current_write_byte > sizeof(writebuffer) - 2) {
+          write(1, writebuffer, current_write_byte);
+          current_write_byte = 0;
+        }
+      }
+    } else {
+      byte = buffer[current_byte++];
+
+      if (byte >= limit)
+        continue;
+
+      writebuffer[current_write_byte++] = pool[byte % pool_size];
+      current_password_char++;
+
+      if (current_password_char == length) {
+        writebuffer[current_write_byte++] = '\n';
+        current_password_char = 0;
+        current_password++;
+      }
+
+      if (current_write_byte > sizeof(writebuffer) - 2) {
+        write(1, writebuffer, current_write_byte);
+        current_write_byte = 0;
+      }
+    }
+
+    if (current_password == count) {
+      break;
+    }
   }
 
-  return 0;
+  if (current_write_byte > 0)
+    write(1, writebuffer, current_write_byte);
+
+  exit(0);
 }

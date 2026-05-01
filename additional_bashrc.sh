@@ -21,6 +21,8 @@ alias "sudo rm -rf"="sudo rm -rfi"
 alias l="ls -Alh"
 alias ff="fastfetch"
 
+alias chrome="NIXPKGS_ALLOW_UNFREE=1 nix-shell -p google-chrome --run \"NIXOS_OZONE_WL=1 google-chrome-stable --ozone-platform-hint=auto --ozone-platform=wayland\""
+
 nsh() {
   if [ $# -gt 0 ]; then
     nix-shell -p "$@" --run zsh

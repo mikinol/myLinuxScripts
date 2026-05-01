@@ -1,0 +1,6 @@
+#!/bin/sh
+selected=$(cliphist list | wofi --dmenu)
+
+if [ -n "$selected" ]; then
+    printf %s "$selected" | cliphist decode | wl-copy
+fi

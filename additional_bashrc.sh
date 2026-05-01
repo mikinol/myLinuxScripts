@@ -21,29 +21,6 @@ alias "sudo rm -rf"="sudo rm -rfi"
 alias l="ls -Alh"
 alias ff="fastfetch"
 
-listen_pipe() {
-    local pipe_name="/tmp/${1:-mypipe}"
-
-    # Создаем именованный канал, если его еще нет
-    if [[ ! -p "$pipe_name" ]]; then
-        touch "$pipe_name"
-        echo "Pipe created: $pipe_name"
-    else
-        echo "Using existing pipe: $pipe_name"
-    fi
-
-    # Настраиваем ловушку: при выходе (EXIT) или прерывании (INT/TERM) удалить файл
-    trap 'rm -f "$pipe_name"; return' INT TERM EXIT
-
-    echo "Listening... (Press Ctrl+C to stop)"
-    
-    # Запускаем чтение в бесконечном цикле, чтобы канал не закрывался 
-    # после того, как пишущая программа закончит работу
-    while true; do
-        tail -f "$pipe_name"
-    done
-}
-
 nsh() {
   if [ $# -gt 0 ]; then
     nix-shell -p "$@" --run zsh
@@ -53,10 +30,6 @@ nsh() {
 }
 
 _nsh_packages() {
-    # Мы просто переиспользуем логику дополнения для nix-shell
-    # флаг -p (или --packages) заставляет дополнять имена пакетов
     _arguments '*:package name:_nix_packages'
 }
-
-# Привязываем дополнение к вашей функции
 compdef '_dispatch nix-shell nix-shell' nsh

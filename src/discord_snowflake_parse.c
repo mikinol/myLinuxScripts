@@ -32,8 +32,7 @@ int main(int argc, char *argv[]) {
   int milliseconds = timestamp % 1000;
   struct tm *info = gmtime(&seconds);
 
-  printf("Дата (UTC): %04d-%02d-%02d %02d:%02d:%02d.%03d\n",
-         info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour,
+  printf("Дата (UTC): %04d-%02d-%02d %02d:%02d:%02d.%03d\n", info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour,
          info->tm_min, info->tm_sec, milliseconds);
   printf("Process ID: %u\n", process_id);
   printf("Worker ID:  %u\n", worker_id);

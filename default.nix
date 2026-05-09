@@ -85,8 +85,8 @@ stdenv.mkDerivation {
 
     echo "Compiling C tools..."
 
-    clang -O3 -Wall src/discord_snowflake_parse.c -o build_stage/bin/discord_snowflake_parse
-    clang -O3 -Wall -nostdlib -fno-builtin src/password_gen.c -o build_stage/bin/password_gen
+    clang -O3 -s -Wall src/discord_snowflake_parse.c -o build_stage/bin/discord_snowflake_parse
+    clang -O3 -s -Wall -nostdlib -fno-builtin src/password_gen.c -o build_stage/bin/password_gen
   '';
 
   doCheck = true;

@@ -35,3 +35,13 @@ _nsh_packages() {
     _arguments '*:package name:_nix_packages'
 }
 compdef '_dispatch nix-shell nix-shell' nsh
+
+sixel() {
+    if [ $# -eq 0 ]; then
+        magick - sixel:-
+    else
+        for file in "$@"; do
+            magick "$file" sixel:-
+        done
+    fi
+}

@@ -191,6 +191,10 @@ int main(int argc, char **argv) {
         }
       }
 
+      if (current_password == count) {
+        break;
+      }
+
       byte = buffer[current_byte++] & 0x0F;
       if (byte < limit) {
         writebuffer[current_write_byte++] = pool[byte % pool_size];

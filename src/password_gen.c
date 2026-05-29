@@ -12,12 +12,12 @@
 
 #define BUF_SIZE 64
 
-const char *dicts[3] = {
+const char *dicts[2] = {
     "0123456789ABCDEF", // HEX с большими  буквами
     "0123456789abcdef", // HEX с маленькими буквами
 };
 
-enum dictionaries { HEX_UPPER = 0, HEX_LOWER = 1, IPv6 = 1, UNKNOWN = -1 };
+enum dictionaries { HEX_UPPER = 0, HEX_LOWER = 1, UNKNOWN = -1 };
 
 enum dictionaries parse_dict(const char *arg) {
   if (strcmp(arg, "hexupper") == 0)
@@ -195,14 +195,14 @@ int main(int argc, char **argv) {
           current_password++;
         }
 
-        if (current_write_byte > sizeof(writebuffer) - 2) {
+        if (current_write_byte > sizeof(writebuffer) - 3) {
           write(1, writebuffer, current_write_byte);
           current_write_byte = 0;
         }
-      }
 
-      if (current_password == count) {
-        break;
+        if (current_password == count) {
+          break;
+        }
       }
 
       byte = buffer[current_byte++] & 0x0F;
@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
           current_password++;
         }
 
-        if (current_write_byte > sizeof(writebuffer) - 2) {
+        if (current_write_byte > sizeof(writebuffer) - 3) {
           write(1, writebuffer, current_write_byte);
           current_write_byte = 0;
         }
@@ -236,7 +236,7 @@ int main(int argc, char **argv) {
         current_password++;
       }
 
-      if (current_write_byte > sizeof(writebuffer) - 2) {
+      if (current_write_byte > sizeof(writebuffer) - 3) {
         write(1, writebuffer, current_write_byte);
         current_write_byte = 0;
       }

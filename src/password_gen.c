@@ -1,5 +1,7 @@
 #ifdef __ANDROID__
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #else
 #include "../nolibc/nolibc.h"

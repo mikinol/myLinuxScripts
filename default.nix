@@ -29,6 +29,8 @@ stdenv.mkDerivation {
   # Указываем, что исходники лежат в этой же папке
   src = ./.;
 
+  hardeningDisable = [ "all" ];
+
   dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
   nativeBuildInputs = [clang python3 shellcheck bash dash];

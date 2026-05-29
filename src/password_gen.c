@@ -10,7 +10,7 @@
 
 #include <sys/syscall.h>
 
-#define MAX_BUF_SIZE 16384
+#define MAX_READBUF_SIZE 16384
 #define WRITEBUFFER_SIZE 16384
 
 const char *dicts[2] = {
@@ -136,8 +136,8 @@ static void parse_contains_dictionary_from_argv(int *pool_size, char *pool, cons
 static int64_t recalc_bufsize(double success_percent, double needbytes) {
   double result = needbytes / success_percent;
 
-  if (result > MAX_BUF_SIZE) {
-    return MAX_BUF_SIZE;
+  if (result > MAX_READBUF_SIZE) {
+    return MAX_READBUF_SIZE;
   }
 
   if (success_percent != 1.0 && result < 16) {
@@ -148,6 +148,8 @@ static int64_t recalc_bufsize(double success_percent, double needbytes) {
   return truncated + (truncated < result);
 }
 
+static char readbuffer[MAX_READBUF_SIZE];
+static char writebuffer[WRITEBUFFER_SIZE];
 int main(int argc, char **argv) {
   if (argc < 3) {
     help();
@@ -182,12 +184,10 @@ int main(int argc, char **argv) {
   double success_percent = (double)limit / maxsize;
 
   int64_t buf_size;
-  unsigned char buffer[MAX_BUF_SIZE];
 
   int bytes_read = 0;
   int current_byte = 0;
 
-  char writebuffer[WRITEBUFFER_SIZE];
   int current_write_byte = 0;
 
   int current_password = 0;
@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 
       buf_size =
           recalc_bufsize(success_percent, (password_size - (current_password * length) - current_password_char) / (is_four ? 2.0 : 1.0));
-      bytes_read = syscall(SYS_getrandom, buffer, buf_size, 0);
+      bytes_read = syscall(SYS_getrandom, readbuffer, buf_size, 0);
       if (bytes_read <= 0) {
         perror("getrandom failed");
         exit(1);
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
     }
 
     if (is_four) {
-      byte = buffer[current_byte] >> 4;
+      byte = readbuffer[current_byte] >> 4;
       if (byte < limit) {
         writebuffer[current_write_byte++] = pool[byte % pool_size];
         current_password_char++;
@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
         }
       }
 
-      byte = buffer[current_byte++] & 0x0F;
+      byte = readbuffer[current_byte++] & 0x0F;
       if (byte < limit) {
         writebuffer[current_write_byte++] = pool[byte % pool_size];
         current_password_char++;
@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
         }
       }
     } else {
-      byte = buffer[current_byte++];
+      byte = readbuffer[current_byte++];
 
       if (byte >= limit)
         continue;

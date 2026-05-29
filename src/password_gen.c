@@ -1,4 +1,11 @@
+#ifdef __ANDROID__
+#include <stdio.h>
+#include <unistd.h>
+#else
 #include "../nolibc/nolibc.h"
+#endif
+
+#include <sys/syscall.h>
 
 #define BUF_SIZE 64
 
@@ -166,7 +173,7 @@ int main(int argc, char **argv) {
   while (true) {
     if (current_byte >= bytes_read) {
       current_byte = 0;
-      bytes_read = getrandom(buffer, BUF_SIZE, 0);
+      bytes_read = syscall(SYS_getrandom, buffer, BUF_SIZE, 0);
       if (bytes_read <= 0) {
         perror("getrandom failed");
         exit(1);

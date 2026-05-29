@@ -10,7 +10,8 @@
 
 #include <sys/syscall.h>
 
-#define BUF_SIZE 64
+#define MAX_BUF_SIZE 16384
+#define WRITEBUFFER_SIZE 16384
 
 const char *dicts[2] = {
     "0123456789ABCDEF", // HEX с большими  буквами
@@ -132,6 +133,25 @@ void parse_contains_dictionary_from_argv(int *pool_size, char *pool, const int a
   }
 }
 
+void recalc_bufsize(uint32_t *bufsize, double *success_percent, double needbytes) {
+  double result = needbytes / *success_percent;
+
+  if (result > MAX_BUF_SIZE) {
+    *bufsize = MAX_BUF_SIZE;
+    return;
+  }
+
+  if (*success_percent != 1.0 && result < 16) {
+    *bufsize = 16;
+    return;
+  }
+
+  *bufsize = result;
+  if (result > *bufsize) {
+    *bufsize += 1;
+  }
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     help();
@@ -158,15 +178,18 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  unsigned char buffer[BUF_SIZE];
   const bool is_four = pool_size <= 16;
+  int maxsize = (is_four ? 16 : 256);
+  int limit = maxsize - (maxsize % pool_size);
+  double success_percent = (double)limit / maxsize;
 
-  int limit = (is_four ? 16 : 256) - ((is_four ? 16 : 256) % pool_size);
+  uint32_t buf_size;
+  unsigned char buffer[MAX_BUF_SIZE];
 
   int bytes_read = 0;
   int current_byte = 0;
 
-  char writebuffer[16384];
+  char writebuffer[WRITEBUFFER_SIZE];
   int current_write_byte = 0;
 
   int current_password = 0;
@@ -176,7 +199,10 @@ int main(int argc, char **argv) {
   while (true) {
     if (current_byte >= bytes_read) {
       current_byte = 0;
-      bytes_read = syscall(SYS_getrandom, buffer, BUF_SIZE, 0);
+
+      recalc_bufsize(&buf_size, &success_percent,
+                     (length * count - (current_password * length) - current_password_char) / (is_four ? 2.0 : 1.0));
+      bytes_read = syscall(SYS_getrandom, buffer, buf_size, 0);
       if (bytes_read <= 0) {
         perror("getrandom failed");
         exit(1);
@@ -195,7 +221,7 @@ int main(int argc, char **argv) {
           current_password++;
         }
 
-        if (current_write_byte > sizeof(writebuffer) - 3) {
+        if (current_write_byte > WRITEBUFFER_SIZE - 3) {
           write(1, writebuffer, current_write_byte);
           current_write_byte = 0;
         }
@@ -216,7 +242,7 @@ int main(int argc, char **argv) {
           current_password++;
         }
 
-        if (current_write_byte > sizeof(writebuffer) - 3) {
+        if (current_write_byte > WRITEBUFFER_SIZE - 3) {
           write(1, writebuffer, current_write_byte);
           current_write_byte = 0;
         }
@@ -236,7 +262,7 @@ int main(int argc, char **argv) {
         current_password++;
       }
 
-      if (current_write_byte > sizeof(writebuffer) - 3) {
+      if (current_write_byte > WRITEBUFFER_SIZE - 3) {
         write(1, writebuffer, current_write_byte);
         current_write_byte = 0;
       }

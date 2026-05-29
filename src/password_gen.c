@@ -20,7 +20,7 @@ const char *dicts[2] = {
 
 enum dictionaries { HEX_UPPER = 0, HEX_LOWER = 1, UNKNOWN = -1 };
 
-enum dictionaries parse_dict(const char *arg) {
+static enum dictionaries parse_dict(const char *arg) {
   if (strcmp(arg, "hexupper") == 0)
     return HEX_UPPER;
   if (strcmp(arg, "hexlower") == 0)
@@ -28,7 +28,7 @@ enum dictionaries parse_dict(const char *arg) {
   return UNKNOWN;
 }
 
-void help() {
+static void help() {
   fprintf(
       stderr,
       "Недостаточно агрументов, "
@@ -42,7 +42,7 @@ void help() {
   exit(1);
 }
 
-void parse_length_and_count(unsigned long long *length, unsigned long long *count, char **argv) {
+static void parse_length_and_count(uint64_t *length, uint64_t *count, char **argv) {
   char *end;
 
   *length = strtoull(argv[1], &end, 10);
@@ -60,7 +60,7 @@ void parse_length_and_count(unsigned long long *length, unsigned long long *coun
   }
 }
 
-void parse_predefined_dictionary_from_argv(enum dictionaries *dict, int *pool_size, char *pool, char **argv) {
+static void parse_predefined_dictionary_from_argv(enum dictionaries *dict, int *pool_size, char *pool, char **argv) {
   *dict = parse_dict(argv[3] + 1);
 
   if (*dict == UNKNOWN) {
@@ -72,7 +72,7 @@ void parse_predefined_dictionary_from_argv(enum dictionaries *dict, int *pool_si
   memcpy(pool, dicts[*dict], *pool_size);
 }
 
-void parse_dictionary_from_argv(int *pool_size, char *pool, char **argv) {
+static void parse_dictionary_from_argv(int *pool_size, char *pool, char **argv) {
   char *src = argv[3];
   *pool_size = strlen(src);
 
@@ -85,10 +85,10 @@ void parse_dictionary_from_argv(int *pool_size, char *pool, char **argv) {
   memcpy(pool, src, *pool_size);
 }
 
-void parse_contains_dictionary_from_argv(int *pool_size, char *pool, const int argc, char **argv) {
-  const char letters[52] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const char numbers[10] = "0123456789";
-  const char symbols[25] = "!@#$%^&*()_+[]{}|;:',.<>?";
+static void parse_contains_dictionary_from_argv(int *pool_size, char *pool, const int argc, char **argv) {
+  static const char letters[52] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  static const char numbers[10] = "0123456789";
+  static const char symbols[25] = "!@#$%^&*()_+[]{}|;:',.<>?";
 
   bool contains_chars = true;
   bool contains_symbols = false;
@@ -133,23 +133,19 @@ void parse_contains_dictionary_from_argv(int *pool_size, char *pool, const int a
   }
 }
 
-void recalc_bufsize(uint32_t *bufsize, double *success_percent, double needbytes) {
-  double result = needbytes / *success_percent;
+static int64_t recalc_bufsize(double success_percent, double needbytes) {
+  double result = needbytes / success_percent;
 
   if (result > MAX_BUF_SIZE) {
-    *bufsize = MAX_BUF_SIZE;
-    return;
+    return MAX_BUF_SIZE;
   }
 
-  if (*success_percent != 1.0 && result < 16) {
-    *bufsize = 16;
-    return;
+  if (success_percent != 1.0 && result < 16) {
+    return 16;
   }
 
-  *bufsize = result;
-  if (result > *bufsize) {
-    *bufsize += 1;
-  }
+  int64_t truncated = result;
+  return truncated + (truncated < result);
 }
 
 int main(int argc, char **argv) {
@@ -157,8 +153,10 @@ int main(int argc, char **argv) {
     help();
   }
 
-  unsigned long long length, count;
+  uint64_t length, count;
   parse_length_and_count(&length, &count, argv);
+
+  size_t password_size = length * count;
 
   char pool[256];
   int pool_size = 0;
@@ -183,7 +181,7 @@ int main(int argc, char **argv) {
   int limit = maxsize - (maxsize % pool_size);
   double success_percent = (double)limit / maxsize;
 
-  uint32_t buf_size;
+  int64_t buf_size;
   unsigned char buffer[MAX_BUF_SIZE];
 
   int bytes_read = 0;
@@ -200,8 +198,8 @@ int main(int argc, char **argv) {
     if (current_byte >= bytes_read) {
       current_byte = 0;
 
-      recalc_bufsize(&buf_size, &success_percent,
-                     (length * count - (current_password * length) - current_password_char) / (is_four ? 2.0 : 1.0));
+      buf_size =
+          recalc_bufsize(success_percent, (password_size - (current_password * length) - current_password_char) / (is_four ? 2.0 : 1.0));
       bytes_read = syscall(SYS_getrandom, buffer, buf_size, 0);
       if (bytes_read <= 0) {
         perror("getrandom failed");

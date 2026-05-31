@@ -18,6 +18,8 @@
   slurp,
   zbar,
   libnotify,
+  # Для heatvideo
+  ffmpeg,
   # Остальное
   clang,
   python3,
@@ -47,7 +49,7 @@ stdenv.mkDerivation {
       --replace-fail "awk" "${gawk}/bin/awk" \
       --replace-fail "python3" "${python3}/bin/python3"
 
-    cp bin/maccheck bin/rm_neovim_config build_stage/bin/
+    cp bin/maccheck bin/rm_neovim_config bin/heatvideo build_stage/bin/
 
     substituteInPlace build_stage/bin/maccheck \
       --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
@@ -55,6 +57,10 @@ stdenv.mkDerivation {
 
     substituteInPlace build_stage/bin/rm_neovim_config \
       --replace-fail "#!/bin/sh" "#!${dash}/bin/dash"
+
+    substituteInPlace build_stage/bin/heatvideo \
+      --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3" \
+      --replace-fail "\"ffmpeg\"" "\"${ffmpeg}/bin/ffmpeg\""
 
     cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
 
@@ -86,9 +92,12 @@ stdenv.mkDerivation {
       --replace-fail "notify-send" "${libnotify}/bin/notify-send"
 
     echo "Compiling C tools..."
-
     clang -O3 -s -Wall src/discord_snowflake_parse.c -o build_stage/bin/discord_snowflake_parse
     clang -O3 -s -Wall -static -nostdlib -fno-builtin -fno-math-errno -fno-trapping-math -freciprocal-math -fassociative-math -fomit-frame-pointer src/password_gen.c -o build_stage/bin/password_gen
+
+    echo "Compiling python..."
+    python3 -m py_compile build_stage/tools/hyprland_active_window_listener
+    python3 -m py_compile build_stage/bin/heatvideo
   '';
 
   doCheck = true;
@@ -99,9 +108,6 @@ stdenv.mkDerivation {
 
     shellcheck -s dash build_stage/bin/rm_neovim_config build_stage/tools/cliphistory build_stage/tools/screenshot
 
-    python3 -m py_compile build_stage/tools/hyprland_active_window_listener
-    rm -rf build_stage/tools/__pycache__
-
     echo "Checking C binaries..."
     build_stage/bin/password_gen 48 1 > /dev/null
     build_stage/bin/discord_snowflake_parse 1224763506717360311 > /dev/null
@@ -109,8 +115,8 @@ stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out/tools $out/bin $out/etc
-    cp build_stage/tools/* $out/tools
-    cp build_stage/bin/* $out/bin
-    cp build_stage/etc/* $out/etc
+    cp -r build_stage/tools/ $out/
+    cp -r build_stage/bin/ $out/
+    cp -r build_stage/etc/ $out/
   '';
 }

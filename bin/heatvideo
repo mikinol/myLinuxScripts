@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+import os
+import sys
+import subprocess
+import glob
+import tempfile
+import shutil
+
+def format_time(seconds):
+    """Конвертирует секунды в формат SRT (ЧЧ:ММ:СС,мс)"""
+    hrs = int(seconds // 3600)
+    mins = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    millisecs = int(round((seconds % 1) * 1000))
+    if millisecs == 1000:  # На случай округления вверх
+        secs += 1
+        millisecs = 0
+    return f"{hrs:02d}:{mins:02d}:{secs:02d},{millisecs:03d}"
+
+def main():
+    if len(sys.argv) < 2:
+        print(f"Использование: {sys.argv[0]} <FPS>")
+        sys.exit(1)
+
+    try:
+        fps = float(sys.argv[1])
+    except ValueError:
+        print("Ошибка: FPS должен быть числом.")
+        sys.exit(1)
+
+    frame_duration = 1.0 / fps
+    img_dir = os.path.expanduser("~/heatmap")
+    
+    # Имя и путь итогового видео (сохранится там, откуда запускаешь скрипт)
+    output_video = os.path.abspath("output.mp4")
+
+    if not os.path.isdir(img_dir):
+        print(f"Ошибка: Директория {img_dir} не существует.")
+        sys.exit(1)
+
+    # Ищем картинки
+    extensions = ('*.png', '*.jpg', '*.jpeg', '*.PNG', '*.JPG', '*.JPEG')
+    images = []
+    for ext in extensions:
+        images.extend(glob.glob(os.path.join(img_dir, ext)))
+    images.sort()
+
+    if not images:
+        print("В папке ~/heatmap не найдено картинок.")
+        sys.exit(1)
+
+    print(f"Найдено картинок: {len(images)}.")
+
+    # Создаем случайную временную папку в /tmp
+    # dir="/tmp" используется по умолчанию, но можно поменять, например, на dir="/var/run" (если есть права)
+    tmp_dir = tempfile.mkdtemp(prefix="heatvideo_", dir="/tmp")
+    print(f"Создана временная директория: {tmp_dir}")
+
+    txt_list = os.path.join(tmp_dir, "images.txt")
+    sub_file = os.path.join(tmp_dir, "subtitles.srt")
+
+    try:
+        print("Генерируем временные файлы списков и субтитров...")
+        current_time = 0.0
+
+        with open(txt_list, "w") as f_txt, open(sub_file, "w") as f_sub:
+            for index, img_path in enumerate(images, start=1):
+                safe_path = img_path.replace("'", "'\\''")
+                f_txt.write(f"file '{safe_path}'\n")
+                f_txt.write(f"duration {frame_duration:.6f}\n")
+
+                next_time = current_time + frame_duration
+                start_srt = format_time(current_time)
+                end_srt = format_time(next_time)
+                filename = os.path.basename(img_path)
+                
+                f_sub.write(f"{index}\n")
+                f_sub.write(f"{start_srt} --> {end_srt}\n")
+                f_sub.write(f"{filename}\n\n")
+
+                current_time = next_time
+
+            f_txt.write(f"file '{images[-1].replace("'", "'\\''")}'\n")
+
+        print("Запуск ffmpeg...")
+        
+        # Настройка фильтра субтитров с абсолютным путем к .srt файлу
+        vf_params = f"subtitles={sub_file}:force_style='FontSize=16,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3'"
+
+        ffmpeg_cmd = [
+            "ffmpeg", "-y",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", txt_list,
+            "-vf", vf_params,
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            output_video
+        ]
+
+        subprocess.run(ffmpeg_cmd, check=True)
+        print(f"\nУспех! Видео сохранено в: {output_video}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"\nОшибка при работе ffmpeg: {e}")
+    except Exception as e:
+        print(f"\nПроизошла ошибка: {e}")
+        
+    finally:
+        # Блок finally выполняется ВСЕГДА, даже если ffmpeg упал с ошибкой.
+        # Это гарантирует, что мусор удалится в любом случае.
+        print(f"Удаление временной директории {tmp_dir}...")
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
+
+if __name__ == "__main__":
+    main()

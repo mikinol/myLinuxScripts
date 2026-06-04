@@ -232,6 +232,7 @@ int main(int argc, char **argv) {
       }
 
       byte = current_read_byte & 0x0F;
+      current_byte++;
       if (byte < limit) {
         writebuffer[current_write_byte++] = pool[byte % pool_size];
         current_password_char++;
@@ -249,6 +250,7 @@ int main(int argc, char **argv) {
       }
     } else {
       byte = current_read_byte;
+      current_byte++;
 
       if (byte >= limit)
         continue;
@@ -271,8 +273,6 @@ int main(int argc, char **argv) {
     if (current_password == count) {
       break;
     }
-
-    current_byte++;
   }
 
   if (current_write_byte > 0)

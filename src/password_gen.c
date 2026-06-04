@@ -194,6 +194,7 @@ int main(int argc, char **argv) {
   int current_password_char = 0;
 
   unsigned char byte;
+  unsigned char current_read_byte;
   while (true) {
     if (current_byte >= bytes_read) {
       current_byte = 0;
@@ -207,8 +208,9 @@ int main(int argc, char **argv) {
       }
     }
 
+    current_read_byte = readbuffer[current_byte];
     if (is_four) {
-      byte = readbuffer[current_byte] >> 4;
+      byte = current_read_byte >> 4;
       if (byte < limit) {
         writebuffer[current_write_byte++] = pool[byte % pool_size];
         current_password_char++;
@@ -229,7 +231,7 @@ int main(int argc, char **argv) {
         }
       }
 
-      byte = readbuffer[current_byte++] & 0x0F;
+      byte = current_read_byte & 0x0F;
       if (byte < limit) {
         writebuffer[current_write_byte++] = pool[byte % pool_size];
         current_password_char++;
@@ -246,7 +248,7 @@ int main(int argc, char **argv) {
         }
       }
     } else {
-      byte = readbuffer[current_byte++];
+      byte = current_read_byte;
 
       if (byte >= limit)
         continue;
@@ -269,6 +271,8 @@ int main(int argc, char **argv) {
     if (current_password == count) {
       break;
     }
+
+    current_byte++;
   }
 
   if (current_write_byte > 0)

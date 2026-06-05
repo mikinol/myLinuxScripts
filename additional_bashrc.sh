@@ -45,3 +45,27 @@ sixel() {
         done
     fi
 }
+
+tou8() {
+    if [ -z "$1" ]; then
+        echo "Ошибка: Укажи имя файла. Пример: tou8 main.cpp"
+        return 1
+    fi
+
+    if [ ! -f "$1" ]; then
+        echo "Ошибка: Файл '$1' не найден."
+        return 1
+    fi
+
+    # shellcheck disable=SC2155
+    local temp_file=$(mktemp)
+    
+    if iconv -f windows-1251 -t utf-8 "$1" -o "$temp_file" 2>/dev/null; then
+        mv "$temp_file" "$1"
+        echo "Отлично! Файл '$1' успешно конвертирован в UTF-8."
+    else
+        rm -f "$temp_file"
+        echo "Что-то пошло не так. Возможно, файл уже в UTF-8 или поврежден."
+        return 1
+    fi
+}

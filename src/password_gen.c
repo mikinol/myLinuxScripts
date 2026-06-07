@@ -28,9 +28,10 @@ static enum dictionaries parse_dict(const char *arg) {
   return UNKNOWN;
 }
 
+#define WRITE_LITERAL(fd, str_literal) write(fd, str_literal, sizeof(str_literal) - 1)
 static void help() {
-  fprintf(
-      stderr,
+  WRITE_LITERAL(
+      STDERR_FILENO,
       "Недостаточно агрументов, "
       "password_gen <длинна пароля> <количество паролей> (+s включает специальные символы) (-c выключает символы) (-n выключает цифры)\n"
       "Или можно password_gen <длинна пароля> <количество паролей> <список доступных символов>\n"
@@ -48,14 +49,14 @@ static void parse_length_and_count(uint64_t *length, uint64_t *count, char **arg
   *length = strtoull(argv[1], &end, 10);
 
   if (end == argv[1] || *end != '\0') {
-    fprintf(stderr, "Ошибка парсинга аргументов: длинна пароля не число\n");
+    WRITE_LITERAL(STDERR_FILENO, "Ошибка парсинга аргументов: длинна пароля не число\n");
     exit(1);
   }
 
   *count = strtoull(argv[2], &end, 10);
 
   if (end == argv[2] || *end != '\0') {
-    fprintf(stderr, "Ошибка парсинга аргументов: количество паролей не число\n");
+    WRITE_LITERAL(STDERR_FILENO, "Ошибка парсинга аргументов: количество паролей не число\n");
     exit(1);
   }
 }
@@ -77,8 +78,7 @@ static void parse_dictionary_from_argv(int *pool_size, char *pool, char **argv) 
   *pool_size = strlen(src);
 
   if (*pool_size > 256) {
-    fprintf(stderr, "Ошибка парсинга аргументов: словарь, имеет больше чем "
-                    "256 символов\n");
+    WRITE_LITERAL(STDERR_FILENO, "Ошибка парсинга аргументов: словарь, имеет больше чем 256 символов\n");
     exit(1);
   }
 
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
   }
 
   if (pool_size == 0) {
-    fprintf(stderr, "Ошибка: количество доступных символов = 0\n");
+    WRITE_LITERAL(STDERR_FILENO, "Ошибка: количество доступных символов = 0\n");
     return 1;
   }
 

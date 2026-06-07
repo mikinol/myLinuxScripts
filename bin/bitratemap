@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+import json
+import matplotlib.pyplot as plt
+import numpy as np
+
+if len(sys.argv) < 2:
+    print("Ошибка: Не указано видео.")
+    print(f"Использование: python {sys.argv[0]} <путь_к_видеофайлу>")
+    sys.exit(1)
+
+video_file = sys.argv[1]
+print(f"Анализируем файл: {video_file}...")
+
+# 1. Извлекаем FPS
+fps_cmd = [
+    'ffprobe', '-v', 'error', 
+    '-select_streams', 'v:0', 
+    '-show_entries', 'stream=avg_frame_rate', 
+    '-of', 'default=noprint_wrappers=1:nokey=1', 
+    video_file
+]
+try:
+    fps_res = subprocess.check_output(fps_cmd, text=True).strip()
+    if '/' in fps_res:
+        num, den = map(float, fps_res.split('/'))
+        avg_fps = num / den if den != 0 else 28.405
+    else:
+        avg_fps = float(fps_res) if fps_res else 28.405
+except Exception:
+    avg_fps = 28.405
+
+print(f"Определен средний FPS: {avg_fps:.3f}")
+
+# 2. Запрашиваем ПАКЕТЫ. Берем size, pts_time и dts_time для надежности
+cmd = [
+    'ffprobe', '-v', 'error',
+    '-select_streams', 'v:0',
+    '-show_entries', 'packet=size,pts_time,dts_time',
+    '-of', 'json',
+    video_file
+]
+
+result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+if result.returncode != 0:
+    print("Ошибка ffprobe:", result.stderr)
+    sys.exit(1)
+
+data = json.loads(result.stdout)
+
+times = []
+sizes = []
+
+# Инкремент времени на случай, если в метаданных пакетов вообще нет таймстампа
+fallback_time = 0.0
+frame_duration = 1.0 / avg_fps
+
+for pkt in data.get('packets', []):
+    if 'size' in pkt:
+        # Пытаемся взять pts_time, если нет - dts_time, если совсем всё плохо - считаем вручную
+        t = pkt.get('pts_time') or pkt.get('dts_time')
+        
+        if t and t != 'N/A':
+            current_time = float(t)
+        else:
+            current_time = fallback_time
+            fallback_time += frame_duration
+            
+        times.append(current_time)
+        sizes.append(float(pkt['size']) * 8 / 1000) # в килобиты
+
+if not times:
+    print("Не удалось извлечь данные. Файл поврежден или не является видео.")
+    sys.exit(1)
+
+# Переводим время в минуты
+times_min = np.array(times) / 60
+
+print("Строим график...")
+window_size = max(int(avg_fps), 5)
+sizes_smoothed = np.convolve(sizes, np.ones(window_size)/window_size, mode='same')
+bitrate_mbps = (sizes_smoothed * avg_fps) / 1000
+
+plt.figure(figsize=(12, 6))
+plt.plot(times_min, bitrate_mbps, color='darkcyan', label='Локальный битрейт (пакеты)')
+
+actual_mean = np.mean(sizes) * avg_fps / 1000
+plt.axhline(y=actual_mean, color='red', linestyle='--', alpha=0.7, 
+            label=f'Средний битрейт ({actual_mean:.2f} Mbps)')
+
+plt.title(f'Динамика битрейта (анализ пакетов): {video_file}')
+plt.xlabel('Время (минуты)')
+plt.ylabel('Битрейт (Mbps)')
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.legend()
+
+output_graph = video_file.rsplit('.', 1)[0] + '_bitrate.png'
+plt.savefig(output_graph, dpi=150)
+print(f"График успешно сохранен в: {output_graph}")

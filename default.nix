@@ -18,12 +18,17 @@
   slurp,
   zbar,
   libnotify,
-  # Для heatvideo
+  # Для heatvideo и bitratemap
   ffmpeg,
   # Остальное
   clang,
   python3,
-}:
+}: let
+  pythonClean = python3;
+  pythonWithMatplotlib = python3.withPackages (ps: with ps; [
+    matplotlib
+  ]);
+in
 stdenv.mkDerivation {
   pname = "my-linux-scripts";
   version = "1.0";
@@ -35,7 +40,7 @@ stdenv.mkDerivation {
 
   dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
-  nativeBuildInputs = [clang python3 shellcheck bash dash];
+  nativeBuildInputs = [clang pythonWithMatplotlib pythonClean shellcheck bash dash];
 
   buildPhase = ''
     mkdir -p build_stage/etc build_stage/bin build_stage/tools
@@ -47,9 +52,9 @@ stdenv.mkDerivation {
       --replace-fail "uconv" "${icu}/bin/uconv" \
       --replace-fail "fastfetch" "${fastfetch}/bin/fastfetch" \
       --replace-fail "awk" "${gawk}/bin/awk" \
-      --replace-fail "python3" "${python3}/bin/python3"
+      --replace-fail "python3" "${pythonClean}/bin/python3"
 
-    cp bin/maccheck bin/rm_neovim_config bin/heatvideo build_stage/bin/
+    cp bin/maccheck bin/rm_neovim_config bin/heatvideo bin/bitratemap build_stage/bin/
 
     substituteInPlace build_stage/bin/maccheck \
       --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
@@ -59,13 +64,17 @@ stdenv.mkDerivation {
       --replace-fail "#!/bin/sh" "#!${dash}/bin/dash"
 
     substituteInPlace build_stage/bin/heatvideo \
-      --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3" \
+      --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3" \
       --replace-fail "\"ffmpeg\"" "\"${ffmpeg}/bin/ffmpeg\""
+    
+    substituteInPlace build_stage/bin/bitratemap \
+      --replace-fail "#!/usr/bin/env python3" "#!${pythonWithMatplotlib}/bin/python3" \
+      --replace-fail "'ffprobe'" "'${ffmpeg}/bin/ffprobe'"
 
     cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
 
     substituteInPlace build_stage/tools/hyprland_active_window_listener \
-      --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"
+      --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3"
 
     substituteInPlace build_stage/tools/cliphistory \
       --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
@@ -91,13 +100,16 @@ stdenv.mkDerivation {
       --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
       --replace-fail "notify-send" "${libnotify}/bin/notify-send"
 
+  
+
     echo "Compiling C tools..."
     clang -O3 -s -Wall src/discord_snowflake_parse.c -o build_stage/bin/discord_snowflake_parse
     clang -O3 -s -Wall -static -nostdlib -fno-builtin -fno-math-errno -fno-trapping-math -freciprocal-math -fassociative-math -fomit-frame-pointer src/password_gen.c -o build_stage/bin/password_gen
 
     echo "Compiling python..."
-    python3 -m py_compile build_stage/tools/hyprland_active_window_listener
-    python3 -m py_compile build_stage/bin/heatvideo
+    ${pythonClean}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener
+    ${pythonClean}/bin/python3 -m py_compile build_stage/bin/heatvideo
+    ${pythonWithMatplotlib}/bin/python3 -m py_compile build_stage/bin/bitratemap
   '';
 
   doCheck = true;

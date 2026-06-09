@@ -48,7 +48,7 @@ def get_active_window(is_change_noscreenshare: bool = False):
             
             if is_change_noscreenshare:
                 # Важно: пробелы вокруг ';' и корректный синтаксис
-                cmd = b"[[BATCH]] hl.dispatch(hl.dsp.window.tag({ tag = \"noscreenshare\", window = \"activewindow\" })) ; j/activewindow"
+                cmd = b"[[BATCH]] dispatch  hl.dsp.window.tag({ tag = 'noscreenshare' }) ; j/activewindow"
             else:
                 cmd = b"j/activewindow"
 

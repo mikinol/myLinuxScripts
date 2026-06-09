@@ -118,6 +118,7 @@ try:
                         command = data.decode().strip()
                         if command == "toggle_hide":
                             set_hide = True
+                            print("Set hide")
                             try:
                                 broadcast()
                             except Exception as ex:

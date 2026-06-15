@@ -6,6 +6,6 @@ OUT="$DIR/../build_cache/$NAME"
 [ ! -f "$SRC" ] && { echo "Ошибка: $SRC не найден!"; exit 1; }
 mkdir -p "$DIR/../build_cache"
 
-[ ! -f "$OUT" ] || [ "$SRC" -nt "$OUT" ] && cc -s -O2 -Wall -march=native -pipe $COMPILER_FLAGS -o "$OUT" "$SRC" || true
+[ ! -f "$OUT" ] || [ "$SRC" -nt "$OUT" ] && cc -s -O2 -Wall -march=native -pipe -fno-stack-protector $COMPILER_FLAGS -o "$OUT" "$SRC" || true
 exec "$OUT" "$@"
 

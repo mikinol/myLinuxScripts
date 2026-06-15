@@ -104,7 +104,7 @@ stdenv.mkDerivation {
 
     echo "Compiling C tools..."
     clang -O3 -s -Wall src/discord_snowflake_parse.c -o build_stage/bin/discord_snowflake_parse
-    clang -O3 -s -Wall -static -nostdlib -fno-builtin -fno-math-errno -fno-trapping-math -freciprocal-math -fassociative-math -fomit-frame-pointer src/password_gen.c -o build_stage/bin/password_gen
+    clang -O3 -s -Wall -static -nostdlib -fno-builtin -fno-math-errno -fno-trapping-math -fno-signed-zeros -freciprocal-math -fassociative-math -fomit-frame-pointer src/password_gen.c -o build_stage/bin/password_gen
 
     echo "Compiling python..."
     ${pythonClean}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener

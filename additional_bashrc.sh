@@ -1,3 +1,8 @@
+if [[ "$PREFIX" != *termux* ]] && ! infocmp "$TERM" >/dev/null 2>&1; then
+    echo "$TERM is not supported on this server, using xterm-256color"
+    export TERM="xterm-256color"
+fi
+
 alias urlencode='python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip()))"'
 alias urldecode='python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))"'
 alias transliterate='uconv -x "Any-Latin"'
@@ -10,13 +15,9 @@ alias tolower='awk "{print tolower(\$0)}"'
 alias l="ls -Alh"
 
 alias rm="rm -i"
-alias "rm -f"="rm -fi"
 alias "rm -r"="rm -ri"
-alias "rm -rf"="rm -rfi"
 alias "sudo rm"="sudo rm -i"
-alias "sudo rm -f"="sudo rm -fi"
 alias "sudo rm -r"="sudo rm -ri"
-alias "sudo rm -rf"="sudo rm -rfi"
 
 alias l="ls -Alh"
 alias ff="fastfetch"
@@ -31,10 +32,15 @@ nsh() {
   fi
 }
 
-_nsh_packages() {
-    _arguments '*:package name:_nix_packages'
+_nsh() {
+    if [ -n "$ZSH_VERSION" ]; then
+        # shellcheck disable=SC2180
+        words=(nix-shell -p "${words[@][2,-1]}")
+        CURRENT=$((CURRENT + 1))
+        _nix-shell
+   fi
 }
-compdef '_dispatch nix-shell nix-shell' nsh
+compdef _nsh nsh
 
 sixel() {
     if [ $# -eq 0 ]; then
@@ -69,3 +75,5 @@ tou8() {
         return 1
     fi
 }
+
+

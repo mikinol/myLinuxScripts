@@ -1,5 +1,0 @@
-#!/bin/sh
-DIR="$(cd "$(dirname "$0")" && pwd)"
-NAME="discord_snowflake_parse"
-
-. "$DIR/../tools/compile_wrapper"

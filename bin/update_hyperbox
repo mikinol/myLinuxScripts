@@ -3,10 +3,10 @@
 # Выходим при любой ошибке
 set -e
 
-cd "$(dirname "$0")"
+DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Пути (можно настроить под себя)
-TARGET_DIR="../hyperbox"
+TARGET_DIR="$DIR/hyperbox"
 REPO_DIR="$TARGET_DIR/git"
 REPO_URL="https://github.com/mikinol/hyperbox.git"
 

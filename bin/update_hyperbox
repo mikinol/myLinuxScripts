@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# Выходим при любой ошибке
+set -e
+
+cd "$(dirname "$0")"
+
+# Пути (можно настроить под себя)
+TARGET_DIR="../hyperbox"
+REPO_DIR="$TARGET_DIR/git"
+REPO_URL="https://github.com/mikinol/hyperbox.git"
+
+echo "=== Проверка зависимости hyperbox ==="
+
+if [ ! -d "$REPO_DIR" ]; then
+    echo "Папка $REPO_DIR не найдена. Клонируем репозиторий..."
+    mkdir -p "$REPO_DIR"
+    git clone "$REPO_URL" "$REPO_DIR"
+else
+    echo "Репозиторий найден. Обновляем код..."
+    # Переходим, сбрасываем локальные изменения (на всякий случай) и пуллим
+    cd "$REPO_DIR"
+    git fetch origin
+    git reset --hard origin/master # или main, смотря какая ветка дефолтная
+fi
+
+echo "=== Сборка утилиты ==="
+cd "$REPO_DIR"
+cc -O3 -s -Wall -static -nostdlib -ffreestanding -fno-math-errno -fno-trapping-math -freciprocal-math -march=native -fassociative-math -fomit-frame-pointer ./main.c -o "$TARGET_DIR/hyperbox"
+echo "=== Готово! Бинарник обновлен ==="

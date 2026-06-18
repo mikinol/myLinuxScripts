@@ -21,114 +21,106 @@
   # Для heatvideo и bitratemap
   ffmpeg,
   # Остальное
-  clang,
   python3,
 }: let
   pythonClean = python3;
-  pythonWithMatplotlib = python3.withPackages (ps: with ps; [
-    matplotlib
-  ]);
+  pythonWithMatplotlib = python3.withPackages (ps:
+    with ps; [
+      matplotlib
+    ]);
 in
-stdenv.mkDerivation {
-  pname = "my-linux-scripts";
-  version = "1.0";
+  stdenv.mkDerivation {
+    pname = "my-linux-scripts";
+    version = "1.0";
 
-  # Указываем, что исходники лежат в этой же папке
-  src = ./.;
+    # Указываем, что исходники лежат в этой же папке
+    src = ./.;
 
-  hardeningDisable = [ "all" ];
+    hardeningDisable = ["all"];
 
-  dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
+    dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
-  nativeBuildInputs = [clang pythonWithMatplotlib pythonClean shellcheck bash dash];
+    nativeBuildInputs = [pythonWithMatplotlib pythonClean shellcheck bash dash];
 
-  buildPhase = ''
-    mkdir -p build_stage/etc build_stage/bin build_stage/tools
+    buildPhase = ''
+      mkdir -p build_stage/etc build_stage/bin build_stage/tools
 
-    echo "Copying scripts..."
+      echo "Copying scripts..."
 
-    cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
-    substituteInPlace build_stage/etc/additional_bashrc.sh \
-      --replace-fail "uconv" "${icu}/bin/uconv" \
-      --replace-fail "fastfetch" "${fastfetch}/bin/fastfetch" \
-      --replace-fail "awk" "${gawk}/bin/awk" \
-      --replace-fail "python3" "${pythonClean}/bin/python3"
+      cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
+      substituteInPlace build_stage/etc/additional_bashrc.sh \
+        --replace-fail "uconv" "${icu}/bin/uconv" \
+        --replace-fail "fastfetch" "${fastfetch}/bin/fastfetch" \
+        --replace-fail "awk" "${gawk}/bin/awk" \
+        --replace-fail "python3" "${pythonClean}/bin/python3"
 
-    cp bin/maccheck bin/rm_neovim_config bin/heatvideo bin/bitratemap build_stage/bin/
+      cp bin/maccheck bin/rm_neovim_config bin/heatvideo bin/bitratemap build_stage/bin/
 
-    substituteInPlace build_stage/bin/maccheck \
-      --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
-      --replace-fail "\$XDG_DATA_DIRS" "${hwdata}/share"
+      substituteInPlace build_stage/bin/maccheck \
+        --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
+        --replace-fail "\$XDG_DATA_DIRS" "${hwdata}/share"
 
-    substituteInPlace build_stage/bin/rm_neovim_config \
-      --replace-fail "#!/bin/sh" "#!${dash}/bin/dash"
+      substituteInPlace build_stage/bin/rm_neovim_config \
+        --replace-fail "#!/bin/sh" "#!${dash}/bin/dash"
 
-    substituteInPlace build_stage/bin/heatvideo \
-      --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3" \
-      --replace-fail "\"ffmpeg\"" "\"${ffmpeg}/bin/ffmpeg\""
-    
-    substituteInPlace build_stage/bin/bitratemap \
-      --replace-fail "#!/usr/bin/env python3" "#!${pythonWithMatplotlib}/bin/python3" \
-      --replace-fail "'ffprobe'" "'${ffmpeg}/bin/ffprobe'"
+      substituteInPlace build_stage/bin/heatvideo \
+        --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3" \
+        --replace-fail "\"ffmpeg\"" "\"${ffmpeg}/bin/ffmpeg\""
 
-    cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
+      substituteInPlace build_stage/bin/bitratemap \
+        --replace-fail "#!/usr/bin/env python3" "#!${pythonWithMatplotlib}/bin/python3" \
+        --replace-fail "'ffprobe'" "'${ffmpeg}/bin/ffprobe'"
 
-    substituteInPlace build_stage/tools/hyprland_active_window_listener \
-      --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3"
+      cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
 
-    substituteInPlace build_stage/tools/cliphistory \
-      --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
-      --replace-fail "cliphist" "${cliphist}/bin/cliphist" \
-      --replace-fail "wofi" "${wofi}/bin/wofi" \
-      --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
+      substituteInPlace build_stage/tools/hyprland_active_window_listener \
+        --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3"
 
-    substituteInPlace build_stage/tools/screenshot \
-      --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
-      --replace-fail "grim" "${grim}/bin/grim" \
-      --replace-fail "slurp" "${slurp}/bin/slurp" \
-      --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
+      substituteInPlace build_stage/tools/cliphistory \
+        --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
+        --replace-fail "cliphist" "${cliphist}/bin/cliphist" \
+        --replace-fail "wofi" "${wofi}/bin/wofi" \
+        --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
 
-    substituteInPlace build_stage/tools/qrread \
-      --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
-      --replace-fail "grim" "${grim}/bin/grim" \
-      --replace-fail "slurp" "${slurp}/bin/slurp" \
-      --replace-fail "zbarimg" "${zbar}/bin/zbarimg" \
-      --replace-fail "notify-send" "${libnotify}/bin/notify-send" \
-      --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
+      substituteInPlace build_stage/tools/screenshot \
+        --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
+        --replace-fail "grim" "${grim}/bin/grim" \
+        --replace-fail "slurp" "${slurp}/bin/slurp" \
+        --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
 
-    substituteInPlace build_stage/tools/tlp-set \
-      --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
-      --replace-fail "notify-send" "${libnotify}/bin/notify-send"
+      substituteInPlace build_stage/tools/qrread \
+        --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
+        --replace-fail "grim" "${grim}/bin/grim" \
+        --replace-fail "slurp" "${slurp}/bin/slurp" \
+        --replace-fail "zbarimg" "${zbar}/bin/zbarimg" \
+        --replace-fail "notify-send" "${libnotify}/bin/notify-send" \
+        --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
 
-  
+      substituteInPlace build_stage/tools/tlp-set \
+        --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
+        --replace-fail "notify-send" "${libnotify}/bin/notify-send"
 
-    echo "Compiling C tools..."
-    clang -O3 -s -Wall src/discord_snowflake_parse.c -o build_stage/bin/discord_snowflake_parse
-    clang -O3 -s -Wall -static -nostdlib -fno-builtin -fno-math-errno -fno-trapping-math -fno-signed-zeros -freciprocal-math -fassociative-math -fomit-frame-pointer src/password_gen.c -o build_stage/bin/password_gen
 
-    echo "Compiling python..."
-    ${pythonClean}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener
-    ${pythonClean}/bin/python3 -m py_compile build_stage/bin/heatvideo
-    ${pythonWithMatplotlib}/bin/python3 -m py_compile build_stage/bin/bitratemap
-  '';
 
-  doCheck = true;
-  checkPhase = ''
-    echo "Running shellcheck on patched scripts..."
+      echo "Compiling python..."
+      ${pythonClean}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener
+      ${pythonClean}/bin/python3 -m py_compile build_stage/bin/heatvideo
+      ${pythonWithMatplotlib}/bin/python3 -m py_compile build_stage/bin/bitratemap
+    '';
 
-    shellcheck -s bash build_stage/etc/additional_bashrc.sh build_stage/bin/maccheck build_stage/tools/qrread
+    doCheck = true;
+    checkPhase = ''
+      echo "Running shellcheck on patched scripts..."
 
-    shellcheck -s dash build_stage/bin/rm_neovim_config build_stage/tools/cliphistory build_stage/tools/screenshot
+      shellcheck -s bash build_stage/etc/additional_bashrc.sh build_stage/bin/maccheck build_stage/tools/qrread
 
-    echo "Checking C binaries..."
-    build_stage/bin/password_gen 48 1 > /dev/null
-    build_stage/bin/discord_snowflake_parse 1224763506717360311 > /dev/null
-  '';
+      shellcheck -s dash build_stage/bin/rm_neovim_config build_stage/tools/cliphistory build_stage/tools/screenshot
+    '';
 
-  installPhase = ''
-    mkdir -p $out/tools $out/bin $out/etc
-    cp -r build_stage/tools/ $out/
-    cp -r build_stage/bin/ $out/
-    cp -r build_stage/etc/ $out/
-  '';
-}
+    installPhase = ''
+      mkdir -p $out/tools $out/bin $out/etc
+      cp -r build_stage/tools/ $out/
+      cp -r build_stage/bin/ $out/
+      cp -r build_stage/etc/ $out/
+    '';
+  }

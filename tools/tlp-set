@@ -5,7 +5,7 @@ CACHE_FILE="$HOME/.cache/tlp_profile"
 
 # Функция применения (чтобы не дублировать код)
 apply_tlp() {
-    mode=\$1
+    mode=$1
     case $mode in
         performance)
             sudo tlp performance

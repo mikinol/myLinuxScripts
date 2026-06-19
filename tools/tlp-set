@@ -21,7 +21,7 @@ apply_tlp() {
             mode="auto"
             ;;
     esac
-    echo "\$mode" > "\$CACHE_FILE"
+    echo "$mode" > "$CACHE_FILE"
 }
 
 if [ "$PROFILE" = "restore" ]; then

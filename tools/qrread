@@ -1,8 +1,13 @@
 #!/bin/sh
-QR_TEXT=$(grim -g "$(slurp)" - | zbarimg --raw -)
-
-if [ -n "$QR_TEXT" ]; then
-    printf '%s' "$QR_TEXT" | wl-copy
-else
-    notify-send "QR" "Ошибка сканирования"
+GEOM=$(slurp 2> /dev/null)
+if [ -z "$GEOM" ]; then
+    exit 1
 fi
+
+QR_TEXT=$(grim -g "$GEOM" - | zbarimg --raw - 2> /dev/null)
+if [ -z "$QR_TEXT" ]; then
+    notify-send "QR" "Ошибка сканирования"
+    exit 1
+fi
+
+printf '%s' "$QR_TEXT" | wl-copy

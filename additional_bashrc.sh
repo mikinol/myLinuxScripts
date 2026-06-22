@@ -22,7 +22,7 @@ alias ff="fastfetch"
 
 alias rm_neovim_config="rm -Ivrf ~/.local/share/nvim/* ~/.local/state/nvim/* ~/.cache/nvim ~/.config/nvim/*"
 
-alias chrome="NIXPKGS_ALLOW_UNFREE=1 nix-shell -p google-chrome --run \"NIXOS_OZONE_WL=1 google-chrome-stable --ozone-platform-hint=auto --ozone-platform=wayland\""
+alias chrome="NIXPKGS_ALLOW_UNFREE=1 NIXOS_OZONE_WL=1 nix run nixpkgs#google-chrome -- --ozone-platform-hint=auto --ozone-platform=wayland"
 
 nsh() {
   if [ $# -gt 0 ]; then
@@ -31,7 +31,6 @@ nsh() {
     nix-shell --run zsh
   fi
 }
-
 _nsh() {
     if [ -n "$ZSH_VERSION" ]; then
         # shellcheck disable=SC2180

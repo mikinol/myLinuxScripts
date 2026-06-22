@@ -1,7 +1,9 @@
 #!/bin/sh
-
 DEVICE="${DEVICE:-unknown_device}"
+GEOM=$(slurp)
 
-grim -g "$(slurp)" - | \
-tee "$HOME/Общие/Скриншоты/${DEVICE}_$(date +%Y-%m-%d-%H%M%S).png" | \
-wl-copy --type image/png
+if [ -n "$GEOM" ]; then
+  grim -g "$GEOM" - | \
+  tee "$HOME/Общие/Скриншоты/${DEVICE}_$(date +%Y-%m-%d-%H%M%S).png" | \
+  wl-copy --type image/png
+fi

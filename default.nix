@@ -14,18 +14,15 @@
   slurp,
   zbar,
   libnotify,
-  # Для heatvideo и bitratemap
+  # Для heatvideo
   ffmpeg,
   # Остальное
   python3,
-}: let
-  pythonClean = python3;
 
-  pythonWithMatplotlib = python3.withPackages (ps: [
-    (ps.matplotlib.override {
-      enableTk = false;
-    })
-  ]);
+  coreutils,
+  custom-tee ? coreutils,
+}: let 
+  tee = "${if custom-tee != null then custom-tee else coreutils}";
 in
   stdenv.mkDerivation {
     pname = "my-linux-scripts";
@@ -39,7 +36,7 @@ in
     dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
     nativeBuildInputs = [shellcheck icu.dev];
-    buildInputs = [pythonWithMatplotlib pythonClean dash icu.out gawk cliphist wofi wl-clipboard grim slurp zbar libnotify ffmpeg];
+    buildInputs = [python3 dash icu.out gawk cliphist wofi wl-clipboard grim slurp zbar libnotify ffmpeg tee];
 
     buildPhase = ''
       mkdir -p build_stage/etc build_stage/bin build_stage/tools
@@ -52,22 +49,18 @@ in
       substituteInPlace build_stage/etc/additional_bashrc.sh \
         --replace-fail "uconv" "$out/bin/.uconv" \
         --replace-fail "awk" "${gawk}/bin/awk" \
-        --replace-fail "python3" "${pythonClean}/bin/python3"
+        --replace-fail "python3" "${python3}/bin/python3"
 
-      cp bin/heatvideo bin/bitratemap build_stage/bin/
+      cp bin/heatvideo build_stage/bin/
 
       substituteInPlace build_stage/bin/heatvideo \
-        --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3" \
+        --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3" \
         --replace-fail "\"ffmpeg\"" "\"${ffmpeg}/bin/ffmpeg\""
-
-      substituteInPlace build_stage/bin/bitratemap \
-        --replace-fail "#!/usr/bin/env python3" "#!${pythonWithMatplotlib}/bin/python3" \
-        --replace-fail "'ffprobe'" "'${ffmpeg}/bin/ffprobe'"
 
       cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
 
       substituteInPlace build_stage/tools/hyprland_active_window_listener \
-        --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3"
+        --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"
 
       substituteInPlace build_stage/tools/cliphistory \
         --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
@@ -77,6 +70,7 @@ in
 
       substituteInPlace build_stage/tools/screenshot \
         --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
+        --replace-fail "tee" "${tee}/bin/tee" \
         --replace-fail "grim" "${grim}/bin/grim" \
         --replace-fail "slurp" "${slurp}/bin/slurp" \
         --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
@@ -94,9 +88,8 @@ in
         --replace-fail "notify-send" "${libnotify}/bin/notify-send"
 
       echo "Compiling python..."
-      ${pythonClean}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener
-      ${pythonClean}/bin/python3 -m py_compile build_stage/bin/heatvideo
-      ${pythonWithMatplotlib}/bin/python3 -m py_compile build_stage/bin/bitratemap
+      ${python3}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener
+      ${python3}/bin/python3 -m py_compile build_stage/bin/heatvideo
     '';
 
     doCheck = true;

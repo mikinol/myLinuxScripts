@@ -15,12 +15,14 @@ alias tolower='awk "{print tolower(\$0)}"'
 alias l="ls -Alh"
 
 alias rm="rm -i"
-alias "rm -r"="rm -ri"
+alias "rm -r"="rm -rI"
 alias "sudo rm"="sudo rm -i"
-alias "sudo rm -r"="sudo rm -ri"
+alias "sudo rm -r"="sudo rm -rI"
 
 alias l="ls -Alh"
 alias ff="fastfetch"
+
+alias rm_neovim_config="rm -Ivrf ~/.local/share/nvim/* ~/.local/state/nvim/* ~/.cache/nvim ~/.config/nvim/*"
 
 alias chrome="NIXPKGS_ALLOW_UNFREE=1 nix-shell -p google-chrome --run \"NIXOS_OZONE_WL=1 google-chrome-stable --ozone-platform-hint=auto --ozone-platform=wayland\""
 
@@ -76,4 +78,4 @@ tou8() {
     fi
 }
 
-
+alias cdtemp='cd $(mktemp -d)'

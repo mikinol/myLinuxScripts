@@ -3,13 +3,9 @@
   shellcheck,
   # Шеллы
   dash,
-  bash,
   # additional_bashrc
   icu,
   gawk,
-  fastfetch,
-  # maccheck
-  hwdata,
   # hyprland утилы
   cliphist,
   wofi,
@@ -24,10 +20,12 @@
   python3,
 }: let
   pythonClean = python3;
-  pythonWithMatplotlib = python3.withPackages (ps:
-    with ps; [
-      matplotlib
-    ]);
+
+  pythonWithMatplotlib = python3.withPackages (ps: [
+    (ps.matplotlib.override {
+      enableTk = false;
+    })
+  ]);
 in
   stdenv.mkDerivation {
     pname = "my-linux-scripts";
@@ -40,7 +38,8 @@ in
 
     dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
-    nativeBuildInputs = [pythonWithMatplotlib pythonClean shellcheck bash dash];
+    nativeBuildInputs = [shellcheck];
+    buildInputs = [pythonWithMatplotlib pythonClean dash icu gawk cliphist wofi wl-clipboard grim slurp zbar libnotify ffmpeg];
 
     buildPhase = ''
       mkdir -p build_stage/etc build_stage/bin build_stage/tools
@@ -50,18 +49,10 @@ in
       cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
       substituteInPlace build_stage/etc/additional_bashrc.sh \
         --replace-fail "uconv" "${icu}/bin/uconv" \
-        --replace-fail "fastfetch" "${fastfetch}/bin/fastfetch" \
         --replace-fail "awk" "${gawk}/bin/awk" \
         --replace-fail "python3" "${pythonClean}/bin/python3"
 
-      cp bin/maccheck bin/rm_neovim_config bin/heatvideo bin/bitratemap build_stage/bin/
-
-      substituteInPlace build_stage/bin/maccheck \
-        --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
-        --replace-fail "\$XDG_DATA_DIRS" "${hwdata}/share"
-
-      substituteInPlace build_stage/bin/rm_neovim_config \
-        --replace-fail "#!/bin/sh" "#!${dash}/bin/dash"
+      cp bin/heatvideo bin/bitratemap build_stage/bin/
 
       substituteInPlace build_stage/bin/heatvideo \
         --replace-fail "#!/usr/bin/env python3" "#!${pythonClean}/bin/python3" \
@@ -89,7 +80,7 @@ in
         --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
 
       substituteInPlace build_stage/tools/qrread \
-        --replace-fail "#!/usr/bin/env bash" "#!${bash}/bin/bash" \
+        --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
         --replace-fail "grim" "${grim}/bin/grim" \
         --replace-fail "slurp" "${slurp}/bin/slurp" \
         --replace-fail "zbarimg" "${zbar}/bin/zbarimg" \
@@ -99,8 +90,6 @@ in
       substituteInPlace build_stage/tools/tlp-set \
         --replace-fail "#!/bin/sh" "#!${dash}/bin/dash" \
         --replace-fail "notify-send" "${libnotify}/bin/notify-send"
-
-
 
       echo "Compiling python..."
       ${pythonClean}/bin/python3 -m py_compile build_stage/tools/hyprland_active_window_listener
@@ -112,9 +101,8 @@ in
     checkPhase = ''
       echo "Running shellcheck on patched scripts..."
 
-      shellcheck -s bash build_stage/etc/additional_bashrc.sh build_stage/bin/maccheck build_stage/tools/qrread
-
-      shellcheck -s dash build_stage/bin/rm_neovim_config build_stage/tools/cliphistory build_stage/tools/screenshot
+      shellcheck -s bash build_stage/etc/additional_bashrc.sh
+      shellcheck -s dash build_stage/tools/cliphistory build_stage/tools/screenshot build_stage/tools/qrread
     '';
 
     installPhase = ''

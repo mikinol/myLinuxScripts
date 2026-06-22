@@ -1,6 +1,8 @@
-#!/usr/bin/env bash
-set -o pipefail
+#!/bin/sh
+QR_TEXT=$(grim -g "$(slurp)" - | zbarimg --raw -)
 
-grim -g "$(slurp)" - | \
-zbarimg --raw - 2>/dev/null | \
-wl-copy || notify-send "QR" "Ошибка сканирования"
+if [ -n "$QR_TEXT" ]; then
+    printf '%s' "$QR_TEXT" | wl-copy
+else
+    notify-send "QR" "Ошибка сканирования"
+fi

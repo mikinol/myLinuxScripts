@@ -14,8 +14,6 @@
   slurp,
   zbar,
   libnotify,
-  # Для heatvideo
-  ffmpeg,
   # Остальное
   python3,
 
@@ -36,7 +34,7 @@ in
     dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
     nativeBuildInputs = [shellcheck icu.dev];
-    buildInputs = [python3 dash icu.out gawk cliphist wofi wl-clipboard grim slurp zbar libnotify ffmpeg tee];
+    buildInputs = [python3 dash icu.out gawk cliphist wofi wl-clipboard grim slurp zbar libnotify tee];
 
     buildPhase = ''
       mkdir -p build_stage/etc build_stage/bin build_stage/tools
@@ -54,8 +52,7 @@ in
       cp bin/heatvideo build_stage/bin/
 
       substituteInPlace build_stage/bin/heatvideo \
-        --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3" \
-        --replace-fail "\"ffmpeg\"" "\"${ffmpeg}/bin/ffmpeg\""
+        --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"
 
       cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
 

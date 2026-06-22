@@ -12,8 +12,6 @@ alias toupper='awk "{print toupper(\$0)}"'
 # shellcheck disable=SC2142
 alias tolower='awk "{print tolower(\$0)}"'
 
-alias l="ls -Alh"
-
 alias rm="rm -i"
 alias "rm -r"="rm -rI"
 alias "sudo rm"="sudo rm -i"

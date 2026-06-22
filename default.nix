@@ -38,17 +38,19 @@ in
 
     dontUnpack = false; # Разрешаем Nix скопировать папку в билд-директорию
 
-    nativeBuildInputs = [shellcheck];
-    buildInputs = [pythonWithMatplotlib pythonClean dash icu gawk cliphist wofi wl-clipboard grim slurp zbar libnotify ffmpeg];
+    nativeBuildInputs = [shellcheck icu.dev];
+    buildInputs = [pythonWithMatplotlib pythonClean dash icu.out gawk cliphist wofi wl-clipboard grim slurp zbar libnotify ffmpeg];
 
     buildPhase = ''
       mkdir -p build_stage/etc build_stage/bin build_stage/tools
 
       echo "Copying scripts..."
 
+      cp ${icu.dev}/bin/uconv build_stage/bin/.uconv
+
       cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
       substituteInPlace build_stage/etc/additional_bashrc.sh \
-        --replace-fail "uconv" "${icu}/bin/uconv" \
+        --replace-fail "uconv" "$out/bin/.uconv" \
         --replace-fail "awk" "${gawk}/bin/awk" \
         --replace-fail "python3" "${pythonClean}/bin/python3"
 

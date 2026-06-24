@@ -3,8 +3,6 @@ if [[ "$PREFIX" != *termux* ]] && ! infocmp "$TERM" >/dev/null 2>&1; then
     export TERM="xterm-256color"
 fi
 
-alias urlencode='python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip()))"'
-alias urldecode='python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))"'
 alias transliterate='uconv -x "Any-Latin"'
 
 # shellcheck disable=SC2142

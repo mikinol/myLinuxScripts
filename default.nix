@@ -16,11 +16,14 @@
   libnotify,
   # Остальное
   python3,
-
   coreutils,
   custom-tee ? coreutils,
-}: let 
-  tee = "${if custom-tee != null then custom-tee else coreutils}";
+}: let
+  tee = "${
+    if custom-tee != null
+    then custom-tee
+    else coreutils
+  }";
 in
   stdenv.mkDerivation {
     pname = "my-linux-scripts";
@@ -46,8 +49,7 @@ in
       cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
       substituteInPlace build_stage/etc/additional_bashrc.sh \
         --replace-fail "uconv" "$out/bin/.uconv" \
-        --replace-fail "awk" "${gawk}/bin/awk" \
-        --replace-fail "python3" "${python3}/bin/python3"
+        --replace-fail "awk" "${gawk}/bin/awk"
 
       cp bin/heatvideo build_stage/bin/
 

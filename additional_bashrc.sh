@@ -20,7 +20,7 @@ alias ff="fastfetch"
 
 alias rm_neovim_config="rm -Ivrf ~/.local/share/nvim/* ~/.local/state/nvim/* ~/.cache/nvim ~/.config/nvim/*"
 
-alias chrome="NIXPKGS_ALLOW_UNFREE=1 NIXOS_OZONE_WL=1 nix run nixpkgs#google-chrome -- --ozone-platform-hint=auto --ozone-platform=wayland"
+alias chrome="NIXPKGS_ALLOW_UNFREE=1 NIXOS_OZONE_WL=1 nix run nixpkgs#google-chrome --impure -- --ozone-platform-hint=auto --ozone-platform=wayland"
 
 nsh() {
   if [ $# -gt 0 ]; then

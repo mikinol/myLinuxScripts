@@ -1,0 +1,11 @@
+# Network Manager dispatcher
+
+if [ "$2" = "up" ] || [ "$2" = "dhcp4-change" ]; then
+  if [ -n "$DHCP4_NTP_SERVERS" ]; then
+    mkdir -p /run/systemd/timesyncd.conf.d
+    echo "[Time]" > /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+    echo "NTP=$DHCP4_NTP_SERVERS" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+
+    systemctl restart systemd-timesyncd
+  fi
+fi

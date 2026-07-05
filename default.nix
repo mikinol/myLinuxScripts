@@ -56,7 +56,7 @@ in
       substituteInPlace build_stage/bin/heatvideo \
         --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"
 
-      cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set build_stage/tools/
+      cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set tools/set_ntp_from_dhcp build_stage/tools/
 
       substituteInPlace build_stage/tools/hyprland_active_window_listener \
         --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"

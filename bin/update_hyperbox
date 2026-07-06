@@ -22,6 +22,7 @@ else
     cd "$REPO_DIR"
     git fetch origin
     git reset --hard origin/master # или main, смотря какая ветка дефолтная
+    git submodule update --init  
 fi
 
 echo "=== Сборка утилиты ==="

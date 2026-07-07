@@ -1,18 +1,38 @@
-# Network Manager dispatcher
+#!/bin/sh
+
+CONFIG_FILE="/run/systemd/timesyncd.conf.d/nm-dhcp.conf"
 
 if [ "$2" = "up" ] || [ "$2" = "dhcp4-change" ]; then
   if [ -n "$DHCP4_NTP_SERVERS" ]; then
-    mkdir -p /run/systemd/timesyncd.conf.d
-    echo "[Time]" > /run/systemd/timesyncd.conf.d/nm-dhcp.conf
-    echo "NTP=$DHCP4_NTP_SERVERS" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
-    echo "PollIntervalMinSec=16" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
-    echo "PollIntervalMaxSec=1024" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
-    echo "ConnectionRetrySec=15" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
-    echo "SaveIntervalSec=240" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+    # Шаг 1: Формируем новый конфиг во временную переменную
+    NEW_CONFIG=$(cat <<EOF
+[Time]
+NTP=$DHCP4_NTP_SERVERS
+PollIntervalMinSec=16
+PollIntervalMaxSec=1024
+ConnectionRetrySec=15
+SaveIntervalSec=240
+EOF
+)
 
-    systemctl restart systemd-timesyncd
+    # Шаг 2: Проверяем, существует ли файл и совпадает ли его содержимое
+    if [ -f "$CONFIG_FILE" ] && [ "$(cat "$CONFIG_FILE")" = "$NEW_CONFIG" ]; then
+      # Конфиг уже есть и он правильный, ничего не делаем
+      exit 0
+    else
+      # Конфига нет или серверы изменились — записываем и рестартуем
+      mkdir -p /run/systemd/timesyncd.conf.d
+      echo "$NEW_CONFIG" > "$CONFIG_FILE"
+      systemctl restart systemd-timesyncd
+    fi
+
   else
-    rm -f /run/systemd/timesyncd.conf.d/nm-dhcp.conf
-    systemctl restart systemd-timesyncd
+    # Шаг 3: Если серверов нет, проверяем, есть ли старый файл
+    if [ -f "$CONFIG_FILE" ]; then
+      # Файл был — удаляем его и сбрасываем timesyncd на дефолт
+      rm -f "$CONFIG_FILE"
+      systemctl restart systemd-timesyncd
+    fi
+    # Если файла и так не было — ветка else просто промолчит
   fi
 fi

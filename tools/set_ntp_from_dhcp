@@ -5,7 +5,14 @@ if [ "$2" = "up" ] || [ "$2" = "dhcp4-change" ]; then
     mkdir -p /run/systemd/timesyncd.conf.d
     echo "[Time]" > /run/systemd/timesyncd.conf.d/nm-dhcp.conf
     echo "NTP=$DHCP4_NTP_SERVERS" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+    echo "PollIntervalMinSec=16" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+    echo "PollIntervalMaxSec=1024" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+    echo "ConnectionRetrySec=15" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
+    echo "SaveIntervalSec=240" >> /run/systemd/timesyncd.conf.d/nm-dhcp.conf
 
+    systemctl restart systemd-timesyncd
+  else
+    rm -f /run/systemd/timesyncd.conf.d/nm-dhcp.conf
     systemctl restart systemd-timesyncd
   fi
 fi

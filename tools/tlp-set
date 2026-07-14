@@ -26,7 +26,7 @@ apply_tlp() {
 
 if [ "$PROFILE" = "restore" ]; then
     # Читаем старое значение, если пусто — ставим auto
-    SAVED=$(cat "$CACHE_FILE" 2>/dev/null || echo "auto")
+    read -r SAVED < "$CACHE_FILE" 2>/dev/null || SAVED="auto"
     apply_tlp "$SAVED"
 else
     # Обычная установка нового режима

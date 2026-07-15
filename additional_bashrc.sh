@@ -5,6 +5,12 @@ fi
 
 alias transliterate='uconv -x "Any-Latin"'
 
+rwhich() {
+    local cmd_path
+    cmd_path=$(command -v "$1") || { echo "Команда '$1' не найдена" >&2; return 1; }
+    readlink -f "$cmd_path"
+}
+
 # shellcheck disable=SC2142
 alias toupper='awk "{print toupper(\$0)}"'
 # shellcheck disable=SC2142

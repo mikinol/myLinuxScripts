@@ -45,6 +45,9 @@ _nsh() {
 }
 compdef _nsh nsh
 
+alias ns="nix shell nixpkgs#"
+alias nr="nix run nixpkgs#"
+
 sixel() {
     if [ $# -eq 0 ]; then
         magick - sixel:-

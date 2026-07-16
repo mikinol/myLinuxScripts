@@ -47,6 +47,7 @@ compdef _nsh nsh
 
 alias ns="nix shell nixpkgs#"
 alias nr="nix run nixpkgs#"
+alias ndev="nix develop --override-input nixpkgs nixpkgs"
 
 sixel() {
     if [ $# -eq 0 ]; then

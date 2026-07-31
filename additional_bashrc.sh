@@ -103,7 +103,12 @@ _ns() {
 compdef _ns ns
 
 nr() {
-  nix run "nixpkgs#$1"
+  local pkg="$1"
+  if [[ "$pkg" == *#* || "$pkg" == *:* ]]; then
+    nix run --override-input nixpkgs nixpkgs "$pkg"
+  else
+    nix run --override-input nixpkgs nixpkgs "nixpkgs#$pkg"
+  fi
 }
 
 nix-graph() {

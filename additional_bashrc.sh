@@ -117,13 +117,13 @@ nix-graph() {
   echo "Генерация графа зависимостей..."
   if nix-store --query --graph "$1" | dot -Tsvg > "$output_file"; then
     echo "Открытие $output_file..."
-    xdg-open "$output_file"
+    xdg-open "$output_file" & disown
   else
     echo "Ошибка при создании графа."
-    return 
+    return 1
   fi
 }
 
-alias ndev="nix develop --override-input nixpkgs nixpkgs"
+alias ndev="nix develop --override-input nixpkgs nixpkgs -c zsh"
 alias nbuild="nix build --impure --no-link --print-out-paths --expr '(import <nixpkgs> {}).callPackage ./default.nix {}'"
 fi

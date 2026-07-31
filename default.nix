@@ -40,15 +40,15 @@ in
     buildInputs = [python3 dash icu.out gawk cliphist wofi wl-clipboard grim slurp zbar libnotify tee];
 
     buildPhase = ''
-      mkdir -p build_stage/etc build_stage/bin build_stage/tools
+      mkdir -p build_stage/etc build_stage/bin build_stage/tools build_stage/internal
 
       echo "Copying scripts..."
 
-      cp ${icu.dev}/bin/uconv build_stage/bin/.uconv
+      cp ${icu.dev}/bin/uconv build_stage/internal/uconv
 
       cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
       substituteInPlace build_stage/etc/additional_bashrc.sh \
-        --replace-fail "uconv" "$out/bin/.uconv" \
+        --replace-fail "uconv" "$out/internal/uconv" \
         --replace-fail "awk" "${gawk}/bin/awk"
 
       cp bin/heatvideo build_stage/bin/
@@ -100,9 +100,12 @@ in
     '';
 
     installPhase = ''
-      mkdir -p $out/tools $out/bin $out/etc
+      mkdir -p $out/internal $out/tools $out/bin $out/etc
+      cp -r build_stage/internal/ $out/
       cp -r build_stage/tools/ $out/
       cp -r build_stage/bin/ $out/
       cp -r build_stage/etc/ $out/
+
+      ln -s ${wl-clipboard}/bin/wl-copy $out/bin/wl-copy
     '';
   }

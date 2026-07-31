@@ -26,29 +26,6 @@ alias ff="fastfetch"
 
 alias rm_neovim_config="rm -Ivrf ~/.local/share/nvim/* ~/.local/state/nvim/* ~/.cache/nvim ~/.config/nvim/*"
 
-alias chrome="NIXPKGS_ALLOW_UNFREE=1 NIXOS_OZONE_WL=1 nix run nixpkgs#google-chrome --impure -- --ozone-platform-hint=auto --ozone-platform=wayland"
-
-nsh() {
-  if [ $# -gt 0 ]; then
-    nix-shell -p "$@" --run zsh
-  else
-    nix-shell --run zsh
-  fi
-}
-_nsh() {
-    if [ -n "$ZSH_VERSION" ]; then
-        # shellcheck disable=SC2180
-        words=(nix-shell -p "${words[@][2,-1]}")
-        CURRENT=$((CURRENT + 1))
-        _nix-shell
-   fi
-}
-compdef _nsh nsh
-
-alias ns="nix shell nixpkgs#"
-alias nr="nix run nixpkgs#"
-alias ndev="nix develop --override-input nixpkgs nixpkgs"
-
 sixel() {
     if [ $# -eq 0 ]; then
         magick - sixel:-
@@ -84,3 +61,69 @@ tou8() {
 }
 
 alias cdtemp='cd $(mktemp -d)'
+
+if command -v nix &>/dev/null; then
+nsh() {
+  if [ $# -gt 0 ]; then
+    nix-shell -p "$@" --run zsh
+  else
+    nix-shell --run zsh
+  fi
+}
+_nsh() {
+    if [ -n "$ZSH_VERSION" ]; then
+        # shellcheck disable=SC2180
+        words=(nix-shell -p "${words[@][2,-1]}")
+        CURRENT=$((CURRENT + 1))
+        _nix-shell
+   fi
+}
+compdef _nsh nsh
+
+ns() {
+  local args=()
+  local arg
+  for arg in "$@"; do
+    if [[ "$arg" == *#* || "$arg" == *:* ]]; then
+      args+=("$arg")
+    else
+      args+=("nixpkgs#$arg")
+    fi
+  done
+  nix shell "${args[@]}"
+}
+_ns() {
+  if [ -n "$ZSH_VERSION" ]; then
+    # Подменяем имя команды на 'nix' и передаем подкоманду 'shell'
+    words=(nix shell "nixpkgs#${words[CURRENT]}")
+    CURRENT=3
+    _nix
+  fi
+}
+compdef _ns ns
+
+nr() {
+  nix run "nixpkgs#$1"
+}
+
+nix-graph() {
+  if [ -z "$1" ]; then
+    echo "Использование: nix-graph <путь_к_пакету_или_симлинку>"
+    return 1
+  fi
+
+  output_file="/tmp/${UID}-nix-graph.svg"
+
+  echo "Генерация графа зависимостей..."
+  if nix-store --query --graph "$1" | dot -Tsvg > "$output_file"; then
+    echo "Открытие $output_file..."
+    xdg-open "$output_file"
+  else
+    echo "Ошибка при создании графа."
+    return 
+  fi
+}
+
+alias ndev="nix develop --override-input nixpkgs nixpkgs"
+alias nbuild="nix build --impure --no-link --print-out-paths --expr '(import <nixpkgs> {}).callPackage ./default.nix {}'"
+fi

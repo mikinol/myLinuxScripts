@@ -43,7 +43,6 @@ tou8() {
         echo "Ошибка: Укажи имя файла. Пример: tou8 main.cpp"
         return 1
     fi
-
     if [ ! -f "$1" ]; then
         echo "Ошибка: Файл '$1' не найден."
         return 1
@@ -119,10 +118,10 @@ nix-graph() {
     return 1
   fi
 
-  output_file="/tmp/${UID}-nix-graph.svg"
+  output_file="$XDG_RUNTIME_DIR/${UID}-nix-graph.svg"
 
   echo "Генерация графа зависимостей..."
-  if nix-store --query --graph "$1" | dot -Tsvg > "$output_file"; then
+  if nix-store --query --graph "$1" | dot -Tsvg > "$output_file" ; then
     echo "Открытие $output_file..."
     xdg-open "$output_file" & disown
   else

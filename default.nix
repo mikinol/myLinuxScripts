@@ -16,6 +16,7 @@
   libnotify,
   # Остальное
   python3,
+  glibc,
   coreutils,
   custom-tee ? coreutils,
 }: let
@@ -49,15 +50,15 @@ in
       cp additional_bashrc.sh build_stage/etc/additional_bashrc.sh
       substituteInPlace build_stage/etc/additional_bashrc.sh \
         --replace-fail "uconv" "$out/internal/uconv" \
+        --replace-fail "mktemp" "${coreutils}/bin/mktemp" \
+        --replace-fail "iconv" "${glibc}/bin/iconv" \
         --replace-fail "awk" "${gawk}/bin/awk"
 
       cp bin/heatvideo build_stage/bin/
-
       substituteInPlace build_stage/bin/heatvideo \
         --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"
 
       cp tools/hyprland_active_window_listener tools/cliphistory tools/screenshot tools/qrread tools/tlp-set tools/set_ntp_from_dhcp build_stage/tools/
-
       substituteInPlace build_stage/tools/hyprland_active_window_listener \
         --replace-fail "#!/usr/bin/env python3" "#!${python3}/bin/python3"
 
@@ -72,6 +73,7 @@ in
         --replace-fail "tee" "${tee}/bin/tee" \
         --replace-fail "grim" "${grim}/bin/grim" \
         --replace-fail "slurp" "${slurp}/bin/slurp" \
+        --replace-fail "date" "${coreutils}/bin/date" \
         --replace-fail "wl-copy" "${wl-clipboard}/bin/wl-copy"
 
       substituteInPlace build_stage/tools/qrread \

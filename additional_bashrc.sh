@@ -26,6 +26,8 @@ alias ff="fastfetch"
 
 alias rm_neovim_config="rm -Ivrf ~/.local/share/nvim/* ~/.local/state/nvim/* ~/.cache/nvim ~/.config/nvim/*"
 
+alias fuseu="fusermount -u"
+
 sixel() {
     if [ $# -eq 0 ]; then
         magick - sixel:-

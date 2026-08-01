@@ -91,7 +91,7 @@ ns() {
       args+=("nixpkgs#$arg")
     fi
   done
-  nix shell "${args[@]}"
+  IN_NIX_SHELL=1 nix shell "${args[@]}"
 }
 _ns() {
   if [ -n "$ZSH_VERSION" ]; then

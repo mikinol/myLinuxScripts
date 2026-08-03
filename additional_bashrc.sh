@@ -108,7 +108,7 @@ nr() {
   if [[ "$pkg" == *#* || "$pkg" == *:* ]]; then
     nix run --override-input nixpkgs nixpkgs "$pkg"
   else
-    nix run --override-input nixpkgs nixpkgs "nixpkgs#$pkg"
+    nix run "nixpkgs#$pkg"
   fi
 }
 
@@ -132,4 +132,15 @@ nix-graph() {
 
 alias ndev="nix develop --override-input nixpkgs nixpkgs -c zsh"
 alias nbuild="nix build --impure --no-link --print-out-paths --expr '(import <nixpkgs> {}).callPackage ./default.nix {}'"
+
+adblanconnect() {
+  ADB_TARGET=$(avahi-browse -rtp _adb-tls-connect._tcp | awk -F';' '\$1=="=" {print \$8":"\$9; exit}')
+
+  if [ -n "$ADB_TARGET" ]; then
+    echo "Найдено устройство: $ADB_TARGET"
+    adb connect "$ADB_TARGET"
+  else
+    echo "ADB устройство не найдено в сети"
+  fi
+}
 fi

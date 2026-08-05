@@ -64,22 +64,6 @@ tou8() {
 alias cdtemp='cd $(mktemp -d)'
 
 if command -v nix &>/dev/null; then
-nsh() {
-  if [ $# -gt 0 ]; then
-    nix-shell -p "$@" --run zsh
-  else
-    nix-shell --run zsh
-  fi
-}
-_nsh() {
-    if [ -n "$ZSH_VERSION" ]; then
-        # shellcheck disable=SC2180
-        words=(nix-shell -p "${words[@][2,-1]}")
-        CURRENT=$((CURRENT + 1))
-        _nix-shell
-   fi
-}
-compdef _nsh nsh
 
 ns() {
   local args=()
@@ -130,6 +114,7 @@ nix-graph() {
   fi
 }
 
+alias nsh="nix develop -f shell.nix -c zsh"
 alias ndev="nix develop --override-input nixpkgs nixpkgs -c zsh"
 alias nbuild="nix build --impure --no-link --print-out-paths --expr '(import <nixpkgs> {}).callPackage ./default.nix {}'"
 
